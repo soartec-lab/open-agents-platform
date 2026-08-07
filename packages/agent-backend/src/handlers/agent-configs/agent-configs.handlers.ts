@@ -30,10 +30,15 @@ import {
 
 const factory = createFactory();
 
+// The REST contract expresses "no role" as an ABSENT field; the model uses
+// null. Serialize through this mapping or the generated response validator
+// rejects the row ("expected string, received null").
+const toApi = (config: AgentConfig) => ({ ...config, role: config.role ?? undefined });
+
 export const getAgentConfigsHandlers = factory.createHandlers(
   zValidator("response", GetAgentConfigsResponse),
   async (c: GetAgentConfigsContext) => {
-    return c.json({ configs: await AgentConfig.list() });
+    return c.json({ configs: (await AgentConfig.list()).map(toApi) });
   },
 );
 
@@ -44,7 +49,7 @@ export const createAgentConfigHandlers = factory.createHandlers(
     if (created === "name_taken") {
       return c.json({ error: "Agent name is already taken" }, 409);
     }
-    return c.json(created, 201);
+    return c.json(toApi(created), 201);
   },
 );
 
@@ -59,7 +64,7 @@ export const updateAgentConfigHandlers = factory.createHandlers(
       return c.json({ error: "Agent name is already taken" }, 409);
     }
     if (!updated) return c.json({ error: "Agent config not found" }, 404);
-    return c.json(updated);
+    return c.json(toApi(updated));
   },
 );
 
