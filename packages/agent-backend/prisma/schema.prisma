@@ -1,0 +1,61 @@
+// Prisma schema for the agent platform store (packages/agent-backend).
+// SQLite via the default client. The DB lives under node_modules so `vite dev`
+// (which watches the whole package root) does not reload on every write.
+// @prisma/client is externalized by the vite node build (ssr.external), so the
+// generated client is imported from node_modules at runtime, keeping
+// engine/schema resolution intact.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../node_modules/.agent-data/agent.db"
+}
+
+// One model per table; the model files mirror these 1:1
+// (src/models/agent-config.ts, src/models/channel.ts,
+// src/models/channel-member.ts). Names align across layers: the API schema
+// (openapi/agent), the table, and the backend model use the same name.
+
+// A user-created agent served by the single `custom` flue agent
+// (src/agents/chat/custom/). The name is UNIQUE — it is the label the
+// orchestrator's delegate tool picklist and @mentions resolve against. The
+// catalog is shared across sessions; ownership enforcement is deferred (no
+// ownerId) until a real user identity exists.
+model AgentConfig {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  instructions String
+  role         String? // job-title label (e.g. "Researcher")
+  createdAt    DateTime @default(now())
+
+  channelMembers ChannelMember[]
+}
+
+// A Discord-like channel: a name, an optional goal, and invited member
+// agents. The orchestrator's conversation instance id is `channel-<id>`;
+// each member's is `<configId>__channel-<id>`.
+model Channel {
+  id        String   @id @default(uuid())
+  name      String
+  goal      String?
+  createdAt DateTime @default(now())
+
+  members ChannelMember[]
+}
+
+// One invited agent in a channel. Deleting the channel or the agent config
+// cascades the membership away; duplicate membership is a handler-level
+// check backed by the compound unique below.
+model ChannelMember {
+  id        String   @id @default(uuid())
+  channelId String
+  configId  String
+  createdAt DateTime @default(now())
+
+  channel Channel     @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  config  AgentConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, configId])
+}
