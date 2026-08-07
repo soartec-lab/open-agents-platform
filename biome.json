@@ -1,0 +1,49 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.1/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": false,
+    "includes": ["**/*.ts", "**/*.tsx", "**/*.json", "!node_modules", "!dist", "!bun.lock"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended"
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "trailingCommas": "all",
+      "semicolons": "always"
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "packages/agent-frontend/app/api/**",
+        "packages/agent-backend/src/routes.ts",
+        "packages/agent-backend/src/handlers/validator.ts",
+        "packages/agent-backend/src/handlers/schemas/**",
+        "packages/agent-backend/src/handlers/**/*.context.ts",
+        "packages/agent-backend/src/handlers/**/*.zod.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": { "noExplicitAny": "off", "noConfusingVoidType": "off" },
+          "complexity": { "noBannedTypes": "off" }
+        }
+      }
+    }
+  ]
+}

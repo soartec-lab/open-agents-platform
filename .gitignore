@@ -111,3 +111,41 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Bun
+.bun/
+bun.sh.crash.*
+bun-debug.log*
+
+# Environment files — keep .env.example tracked
+.env.*
+!.env.example
+
+# Build outputs (Vite, TypeScript)
+build/
+.vite/
+
+# devcontainer lock (auto-generated, not committed)
+.devcontainer/devcontainer-lock.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/extensions.json
+
+# Local Claude Code session backup — survives container rebuild, never commit
+.claude-session-backup/
+
+# Local, per-developer Claude Code settings (never commit personal overrides)
+.claude/settings.local.json
+
+# React Router framework mode typegen output
+.react-router/
+
+# flue v2 Vite plugin generated inputs (agent-backend)
+.flue-vite/
+.flue-vite.wrangler.jsonc
+
+# agent-frontend sandbox proxy build artifacts (built into public/ by vite.sandbox.config.ts)
+packages/agent-frontend/public/sandbox_proxy.*
