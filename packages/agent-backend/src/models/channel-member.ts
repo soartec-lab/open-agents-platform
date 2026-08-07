@@ -89,11 +89,7 @@ export const ChannelMember = {
       });
       return toRecord(row);
     } catch (err) {
-      if (
-        typeof err === "object" &&
-        err !== null &&
-        (err as { code?: unknown }).code === "P2002"
-      ) {
+      if (typeof err === "object" && err !== null && (err as { code?: unknown }).code === "P2002") {
         return "already_member";
       }
       throw err;

@@ -46,11 +46,7 @@ const toRecord = (r: {
 
 /** Whether a thrown Prisma error is the unique-constraint violation (P2002). */
 function isUniqueViolation(err: unknown): boolean {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    (err as { code?: unknown }).code === "P2002"
-  );
+  return typeof err === "object" && err !== null && (err as { code?: unknown }).code === "P2002";
 }
 
 export const AgentConfig = {
