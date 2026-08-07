@@ -1,0 +1,65 @@
+# Path item for GET/POST /agent-configs (packages/agent-backend/src/handlers/agent-configs/,
+# src/models/agent-config.ts). User-created agents served by the single
+# `custom` flue agent.
+get:
+  operationId: getAgentConfigs
+  tags: [agent-configs]
+  summary: List stored agents
+  description: |
+    Returns every stored agent (shared catalog — any session may invite any
+    agent into a channel; ownership enforcement is deferred until a real user
+    identity exists).
+  responses:
+    "200":
+      description: Stored agents, newest first.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/agent-config-list.yaml"
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+post:
+  operationId: createAgentConfig
+  tags: [agent-configs]
+  summary: Create an agent
+  description: |
+    Persists a user-created agent in the backend database. The `instructions`
+    text is free-form; at run time it is applied to the `custom` agent as a
+    sanitized, lower-trust customization section that never overrides the
+    operator hard rules. The name must be unique across the catalog — it is
+    the label the orchestrator's delegate tool and @mentions resolve against.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../schema/create-agent-config-request.yaml"
+  responses:
+    "201":
+      description: The stored agent.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/agent-config.yaml"
+    "400":
+      description: Request rejected by the generated request validator (missing/empty fields or size caps exceeded).
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/validation-error.yaml"
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "409":
+      description: 'An agent with that name already exists (`error: "Agent name is already taken"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"

@@ -1,0 +1,54 @@
+# Path item for POST /channels/{id}/members
+# (packages/agent-backend/src/handlers/channels/, src/models/channel-member.ts).
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Channel id.
+    schema:
+      type: string
+post:
+  operationId: createChannelMember
+  tags: [channels]
+  summary: Invite an agent to the channel
+  description: |
+    Adds one user-created agent as a channel member. The agent's per-channel
+    conversation (`/agents/custom/{configId}__channel-{channelId}`) becomes
+    observable once its first message is dispatched.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../schema/create-channel-member-request.yaml"
+  responses:
+    "201":
+      description: The stored member (with denormalized name/role).
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/channel-member.yaml"
+    "400":
+      description: Request rejected by the generated request validator, or the referenced agent does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/validation-error.yaml"
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "404":
+      description: 'No channel with that id (`error: "Channel not found"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "409":
+      description: 'The agent is already a member (`error: "Agent is already a channel member"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"

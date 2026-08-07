@@ -1,0 +1,10 @@
+# Error body shared by 400/401/403/404/409 responses
+# (packages/agent-backend/src/handlers/, src/middlewares/).
+title: ErrorResponse
+type: object
+required: [error]
+properties:
+  error:
+    type: string
+example:
+  error: Unauthorized

@@ -1,0 +1,71 @@
+# Path item for PATCH/DELETE /channels/{id}
+# (packages/agent-backend/src/handlers/channels/, src/models/channel.ts).
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Channel id.
+    schema:
+      type: string
+patch:
+  operationId: updateChannel
+  tags: [channels]
+  summary: Update a channel's name and/or goal
+  description: |
+    Updates the channel name and/or the goal text shown in the room header.
+    The orchestrator and member agents pick up a changed goal on their next
+    message (their context is re-read per delivered message).
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../schema/update-channel-request.yaml"
+  responses:
+    "200":
+      description: The updated channel.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/channel.yaml"
+    "400":
+      description: Request rejected by the generated request validator.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/validation-error.yaml"
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "404":
+      description: 'No channel with that id (`error: "Channel not found"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+delete:
+  operationId: deleteChannel
+  tags: [channels]
+  summary: Delete a channel
+  description: |
+    Removes the channel and (via cascade) its members. Agent conversations in
+    flue's store are left as-is — they are unreachable once the channel row is
+    gone.
+  responses:
+    "204":
+      description: Deleted.
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "404":
+      description: 'No channel with that id (`error: "Channel not found"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"

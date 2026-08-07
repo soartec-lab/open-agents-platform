@@ -1,0 +1,37 @@
+# Path item for DELETE /channels/{id}/members/{memberId}
+# (packages/agent-backend/src/handlers/channels/, src/models/channel-member.ts).
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Channel id.
+    schema:
+      type: string
+  - name: memberId
+    in: path
+    required: true
+    description: Channel member id.
+    schema:
+      type: string
+delete:
+  operationId: deleteChannelMember
+  tags: [channels]
+  summary: Remove an agent from the channel
+  description: |
+    Removes the member. Its per-channel conversation is left in place so a
+    re-invite reattaches the same history.
+  responses:
+    "204":
+      description: Removed.
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "404":
+      description: 'No such channel or member (`error: "Channel not found"` / `error: "Channel member not found"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"

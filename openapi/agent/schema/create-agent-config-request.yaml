@@ -1,0 +1,23 @@
+# Body of POST /agent-configs. Size caps: the generated zod validator rejects
+# oversized input with 400, and the backend compose step re-truncates as
+# defense-in-depth. Name uniqueness is enforced in the handler (409) because
+# it requires a catalog lookup.
+title: CreateAgentConfigRequest
+type: object
+required: [name, instructions]
+properties:
+  name:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: Display name. Must be unique across the catalog (409 otherwise).
+  instructions:
+    type: string
+    minLength: 1
+    maxLength: 4000
+    description: Free-form agent instructions (applied as a lower-trust customization section).
+  role:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: Optional job-title label (e.g. "Researcher").

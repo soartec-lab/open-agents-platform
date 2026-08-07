@@ -1,0 +1,31 @@
+# One invited agent in a channel (packages/agent-backend/src/models/channel-member.ts).
+# Carries the config's display name and role denormalized so the channel list
+# response is enough to render member chips and resolve @mentions without a
+# separate roster join client-side.
+title: ChannelMember
+type: object
+required: [id, configId, name, createdAt]
+properties:
+  id:
+    type: string
+    description: Server-generated member row id.
+  configId:
+    type: string
+    description: >-
+      The invited agent's AgentConfig id. The member's conversation instance
+      id is `{configId}__channel-{channelId}`.
+  name:
+    type: string
+    description: The agent's display name (denormalized from its AgentConfig).
+  role:
+    type: string
+    description: The agent's job-title label (denormalized from its AgentConfig); absent = no role set.
+  createdAt:
+    type: string
+    description: Invitation timestamp (ISO 8601).
+example:
+  id: 3a1f0d2b-0000-0000-0000-000000000000
+  configId: 6f2c9c1e-0000-0000-0000-000000000000
+  name: Researcher
+  role: Research
+  createdAt: "2026-08-07T12:00:00.000Z"

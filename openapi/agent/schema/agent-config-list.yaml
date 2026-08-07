@@ -1,0 +1,10 @@
+# Response of GET /agent-configs (packages/agent-backend/src/handlers/agent-configs/).
+title: AgentConfigList
+type: object
+required: [configs]
+properties:
+  configs:
+    type: array
+    items:
+      $ref: "./agent-config.yaml"
+    description: All stored agents, newest first. The catalog is shared across sessions.

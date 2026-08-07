@@ -1,0 +1,77 @@
+# Path item for PATCH/DELETE /agent-configs/{id}
+# (packages/agent-backend/src/handlers/agent-configs/, src/models/agent-config.ts).
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Agent configuration id.
+    schema:
+      type: string
+patch:
+  operationId: updateAgentConfig
+  tags: [agent-configs]
+  summary: Update an agent's name, instructions, and/or role
+  description: |
+    Updates a stored agent. Edits apply to live conversations on their next
+    message (the `custom` agent re-reads its config per delivered message).
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../schema/update-agent-config-request.yaml"
+  responses:
+    "200":
+      description: The updated agent.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/agent-config.yaml"
+    "400":
+      description: Request rejected by the generated request validator.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/validation-error.yaml"
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "404":
+      description: 'No agent with that id (`error: "Agent config not found"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "409":
+      description: 'Another agent already has that name (`error: "Agent name is already taken"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+delete:
+  operationId: deleteAgentConfig
+  tags: [agent-configs]
+  summary: Delete an agent
+  description: |
+    Deletes a stored agent. Channel memberships referencing it are removed in
+    the same transaction (Prisma relation onDelete Cascade), so every
+    composite instance id built from this config is rejected with 404 by the
+    conversation guard afterwards.
+  responses:
+    "204":
+      description: Deleted (no content).
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "404":
+      description: 'No agent with that id (`error: "Agent config not found"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"

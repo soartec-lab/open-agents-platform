@@ -1,0 +1,15 @@
+# Body of POST /channels.
+title: CreateChannelRequest
+type: object
+required: [name]
+properties:
+  name:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: Channel name.
+  goal:
+    type: string
+    minLength: 1
+    maxLength: 2000
+    description: Optional goal text.

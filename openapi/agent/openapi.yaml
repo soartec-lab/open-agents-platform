@@ -1,0 +1,131 @@
+# Root OpenAPI document for the plain-REST surface of the agent backend
+# (:41080). This is the orval generation source (`bun run generate`, per-package
+# configs) for BOTH sides: packages/agent-backend implements it via the
+# generated Hono routes + request validators (src/routes.ts + hand-owned
+# src/handlers/), and packages/agent-frontend consumes it via the generated
+# typed SWR client (app/api/).
+#
+# Multi-file layout: each path item lives in ./path/<name>.yaml and each schema
+# in ./schema/<name>.yaml, stitched together here via $ref. Any resolver that
+# handles relative file $refs (orval / swagger-parser / redocly) can bundle it.
+#
+# Source of truth for behavior: packages/agent-backend/src/app.ts (routes),
+# src/models/session.ts (bearer auth), src/channel-agents.ts (message
+# dispatch into agent conversations).
+openapi: 3.0.3
+
+info:
+  title: open-agents-platform backend REST API
+  version: 0.0.0
+  description: |
+    Plain-REST surface of the agent backend (`packages/agent-backend`, port
+    41080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
+    port 41173, cross-origin via CORS).
+
+    **Out of scope — do not add here:** the flue agent conversation endpoint
+    (`GET /agents/:name/:id`). It uses flue's Durable Streams protocol
+    (offset / reconnect / SSE observation), not standard REST, and stays on
+    `@flue/sdk` `createFlueClient`. Note that in this platform every agent
+    conversation is READ-ONLY over HTTP (GET/HEAD only, for live observation);
+    the sole write path into a conversation is `POST /channels/{id}/messages`,
+    which dispatches in-process.
+
+servers:
+  - url: http://localhost:41080
+    description: Local dev backend (the SPA at http://localhost:41173 calls it cross-origin).
+
+tags:
+  - name: session
+    description: App-session token issuance (bootstrap for all authenticated calls).
+  - name: agent-configs
+    description: >-
+      CRUD for user-created agents. Each config (name, instructions, optional
+      role) is served by the single `custom` flue agent via a composite
+      instance id `{configId}__channel-{channelId}`. Names are unique — they
+      are the labels the orchestrator's delegate tool and @mentions resolve
+      against. The catalog is shared across sessions (ownership enforcement is
+      deferred until a real user identity exists). Require an app-session
+      bearer token.
+  - name: channels
+    description: >-
+      Discord-like channels: a name, an optional goal, and one or more invited
+      member agents. Posting a message dispatches it — directly to the member
+      when the channel has exactly one, to the mentioned member when
+      `memberId` is given, and to the `orchestrator` agent otherwise, which
+      answers and/or delegates to members via its delegate tool. Member
+      replies land in per-channel agent conversations that the frontend
+      observes live over SSE and merges client-side. Require an app-session
+      bearer token.
+  - name: meta
+    description: Liveness / ops endpoints. Not called by the SPA.
+
+security:
+  - appSession: []
+
+paths:
+  /health:
+    $ref: "./path/health.yaml"
+  /session:
+    $ref: "./path/session.yaml"
+
+  /agent-configs:
+    $ref: "./path/agent-configs.yaml"
+  /agent-configs/{id}:
+    $ref: "./path/agent-configs-id.yaml"
+
+  /channels:
+    $ref: "./path/channels.yaml"
+  /channels/{id}:
+    $ref: "./path/channels-id.yaml"
+  /channels/{id}/members:
+    $ref: "./path/channels-id-members.yaml"
+  /channels/{id}/members/{memberId}:
+    $ref: "./path/channels-id-members-member-id.yaml"
+  /channels/{id}/messages:
+    $ref: "./path/channels-id-messages.yaml"
+
+components:
+  securitySchemes:
+    appSession:
+      type: http
+      scheme: bearer
+      description: |
+        App-session token issued by `POST /session`: an HMAC-SHA256-signed
+        structure (`base64url(claims).signature`) — not a standard JWT. Expired
+        or invalid tokens receive 401.
+
+  # Aliases so bundlers keep the canonical schema names (and orval derives
+  # clean TypeScript type names) regardless of the file split.
+  schemas:
+    HealthResponse:
+      $ref: "./schema/health-response.yaml"
+    SessionRequest:
+      $ref: "./schema/session-request.yaml"
+    SessionResponse:
+      $ref: "./schema/session-response.yaml"
+    ErrorResponse:
+      $ref: "./schema/error-response.yaml"
+    ValidationError:
+      $ref: "./schema/validation-error.yaml"
+    AgentConfig:
+      $ref: "./schema/agent-config.yaml"
+    AgentConfigList:
+      $ref: "./schema/agent-config-list.yaml"
+    CreateAgentConfigRequest:
+      $ref: "./schema/create-agent-config-request.yaml"
+    UpdateAgentConfigRequest:
+      $ref: "./schema/update-agent-config-request.yaml"
+    Channel:
+      $ref: "./schema/channel.yaml"
+    ChannelList:
+      $ref: "./schema/channel-list.yaml"
+    ChannelMember:
+      $ref: "./schema/channel-member.yaml"
+    CreateChannelRequest:
+      $ref: "./schema/create-channel-request.yaml"
+    UpdateChannelRequest:
+      $ref: "./schema/update-channel-request.yaml"
+    CreateChannelMemberRequest:
+      $ref: "./schema/create-channel-member-request.yaml"
+    CreateChannelMessageRequest:
+      $ref: "./schema/create-channel-message-request.yaml"

@@ -1,0 +1,7 @@
+# Optional request body of POST /session (packages/agent-backend/src/handlers/session/).
+title: SessionRequest
+type: object
+properties:
+  sessionId:
+    type: string
+    description: Session id to resume. Omit to have the backend generate a fresh `sess_<uuid>`.

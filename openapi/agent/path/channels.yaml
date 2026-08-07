@@ -1,0 +1,56 @@
+# Path item for GET/POST /channels (packages/agent-backend/src/handlers/channels/,
+# src/models/channel.ts).
+get:
+  operationId: getChannels
+  tags: [channels]
+  summary: List channels with their members
+  description: |
+    Returns every stored channel, newest first, with invited members embedded
+    (including each member's denormalized name/role, so the sidebar and the
+    room render from this single request). Shared catalog — same
+    deferred-ownership stance as agent configs.
+  responses:
+    "200":
+      description: Stored channels, newest first.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/channel-list.yaml"
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+post:
+  operationId: createChannel
+  tags: [channels]
+  summary: Create a channel
+  description: |
+    Persists a channel (name + optional goal). The channel starts with no
+    members; invite agents via POST /channels/{id}/members.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../schema/create-channel-request.yaml"
+  responses:
+    "201":
+      description: The stored channel (members empty).
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/channel.yaml"
+    "400":
+      description: Request rejected by the generated request validator (missing/empty fields or size caps exceeded).
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/validation-error.yaml"
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"

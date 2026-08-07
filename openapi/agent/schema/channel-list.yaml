@@ -1,0 +1,10 @@
+# Response of GET /channels (packages/agent-backend/src/handlers/channels/).
+title: ChannelList
+type: object
+required: [channels]
+properties:
+  channels:
+    type: array
+    items:
+      $ref: "./channel.yaml"
+    description: All stored channels, newest first, with members embedded. Shared across sessions.

@@ -1,0 +1,9 @@
+# Body of POST /channels/{id}/members.
+title: CreateChannelMemberRequest
+type: object
+required: [configId]
+properties:
+  configId:
+    type: string
+    minLength: 1
+    description: The AgentConfig id of the agent to invite.

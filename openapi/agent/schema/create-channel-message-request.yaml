@@ -1,0 +1,17 @@
+# Body of POST /channels/{id}/messages (packages/agent-backend/src/handlers/channels/,
+# src/channel-agents.ts).
+title: CreateChannelMessageRequest
+type: object
+required: [text]
+properties:
+  text:
+    type: string
+    minLength: 1
+    maxLength: 4000
+    description: The user's message.
+  memberId:
+    type: string
+    description: >-
+      Deliver directly to this member (the frontend resolves a leading
+      @mention to a member id). Omitted: a single-member channel delivers to
+      its member; a multi-member channel delivers to the orchestrator.

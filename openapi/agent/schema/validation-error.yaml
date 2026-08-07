@@ -1,0 +1,22 @@
+# 400 body emitted by the orval-generated request validators
+# (@hono/zod-validator default hook in packages/agent-backend/src/handlers/).
+# The shape ({ success: false, error: { ...zod issues } }) is owned by
+# zod/@hono/zod-validator and may evolve with those libraries, so it is
+# deliberately left loose here.
+title: ValidationError
+type: object
+additionalProperties: true
+properties:
+  success:
+    type: boolean
+    description: Always `false` for a rejected request.
+  error:
+    description: zod issue tree describing what failed validation.
+example:
+  success: false
+  error:
+    name: ZodError
+    issues:
+      - code: invalid_type
+        path: [name]
+        message: Invalid input

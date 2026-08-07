@@ -1,0 +1,33 @@
+# A stored channel (packages/agent-backend/src/models/channel.ts): a name, an
+# optional goal, and the invited member agents. The orchestrator's per-channel
+# conversation instance id is `channel-{id}`.
+title: Channel
+type: object
+required: [id, name, createdAt, members]
+properties:
+  id:
+    type: string
+    description: Server-generated UUID.
+  name:
+    type: string
+    description: Channel name shown in the sidebar.
+  goal:
+    type: string
+    description: >-
+      Optional goal text. Embedded in every dispatch input so member agents
+      and the orchestrator know what the channel is working toward; absent =
+      no goal set.
+  createdAt:
+    type: string
+    description: Creation timestamp (ISO 8601).
+  members:
+    type: array
+    items:
+      $ref: "./channel-member.yaml"
+    description: Invited agents, oldest first.
+example:
+  id: 9b7e5a10-0000-0000-0000-000000000000
+  name: launch-plan
+  goal: Ship the v1 landing page by the end of the month.
+  createdAt: "2026-08-07T12:00:00.000Z"
+  members: []

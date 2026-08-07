@@ -1,0 +1,21 @@
+# Body of PATCH /agent-configs/{id}. All fields optional; whatever is present
+# is applied. Instructions edits apply to live conversations on their next
+# message (the custom agent re-reads its config per delivered message).
+title: UpdateAgentConfigRequest
+type: object
+properties:
+  name:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: New display name (a name can never be cleared). Must stay unique (409 otherwise).
+  instructions:
+    type: string
+    minLength: 1
+    maxLength: 4000
+    description: New instructions (instructions can never be cleared).
+  role:
+    type: string
+    nullable: true
+    maxLength: 100
+    description: Job-title label; null clears the role, omitted keeps it.

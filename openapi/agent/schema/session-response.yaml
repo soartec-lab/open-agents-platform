@@ -1,0 +1,22 @@
+# Response of POST /session (packages/agent-backend/src/models/session.ts issueSession).
+title: SessionResponse
+type: object
+required: [token, sessionId, expiresIn, tokenType]
+properties:
+  token:
+    type: string
+    description: Signed app-session bearer token.
+  sessionId:
+    type: string
+    description: App-session subject id.
+  expiresIn:
+    type: integer
+    description: Token TTL in seconds.
+  tokenType:
+    type: string
+    enum: [Bearer]
+example:
+  token: eyJzdWIiOiJzZXNzX2FiYyIsImlhdCI6MCwiZXhwIjo0MzIwMH0.signature
+  sessionId: sess_6f2c9c1e-0000-0000-0000-000000000000
+  expiresIn: 43200
+  tokenType: Bearer

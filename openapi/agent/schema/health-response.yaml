@@ -1,0 +1,12 @@
+# Response of GET /health (packages/agent-backend/src/handlers/meta/).
+title: HealthResponse
+type: object
+required: [ok, service, liveLlm]
+properties:
+  ok:
+    type: boolean
+  service:
+    type: string
+  liveLlm:
+    type: boolean
+    description: Whether a live LLM API key is configured on the backend.

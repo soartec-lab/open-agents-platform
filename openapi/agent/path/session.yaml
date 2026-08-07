@@ -1,0 +1,33 @@
+# Path item for POST /session (packages/agent-backend/src/handlers/session/,
+# src/models/session.ts).
+post:
+  operationId: createSession
+  tags: [session]
+  summary: Issue an app-session bearer token
+  description: |
+    Unauthenticated bootstrap endpoint. Returns an HMAC-SHA256-signed,
+    expiring app-session token. The request body is optional — all of its
+    fields are optional, so an absent body (or `{}`) yields a freshly
+    generated session id. Pass `{ "sessionId": "..." }` to re-issue a token
+    for an existing session. A body that is present but is not valid JSON is
+    rejected by the generated request validator with 400.
+  security: []
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          $ref: "../schema/session-request.yaml"
+  responses:
+    "200":
+      description: Token issued.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/session-response.yaml"
+    "400":
+      description: A present but malformed JSON body (rejected by the generated request validator).
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/validation-error.yaml"

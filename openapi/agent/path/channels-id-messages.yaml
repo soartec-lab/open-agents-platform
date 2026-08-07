@@ -1,0 +1,62 @@
+# Path item for POST /channels/{id}/messages
+# (packages/agent-backend/src/handlers/channels/, src/channel-agents.ts).
+# The ONLY write path into any agent conversation — the /agents/* HTTP surface
+# is read-only (GET/HEAD observation).
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Channel id.
+    schema:
+      type: string
+post:
+  operationId: createChannelMessage
+  tags: [channels]
+  summary: Post a message to the channel
+  description: |
+    Dispatches the message into the right agent conversation and responds on
+    admission (202):
+
+    - `memberId` present (the frontend resolves a leading @mention): the
+      message is delivered directly to that member agent.
+    - Channel has exactly one member: delivered directly to that member.
+    - Otherwise: delivered to the channel's `orchestrator` conversation; the
+      orchestrator replies and/or delegates to members via its
+      `delegate_to_member` tool.
+
+    The message and the agents' replies appear in the per-channel
+    conversations, which the frontend observes live over SSE and merges
+    client-side.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../schema/create-channel-message-request.yaml"
+  responses:
+    "202":
+      description: Message admitted; it appears in the target conversation's stream.
+    "400":
+      description: Request rejected by the generated request validator.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/validation-error.yaml"
+    "401":
+      description: 'Missing, invalid, or expired app-session bearer token (`error: "Unauthorized"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "404":
+      description: 'No such channel or member (`error: "Channel not found"` / `error: "Channel member not found"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"
+    "409":
+      description: 'The channel has no members yet (`error: "Channel has no members"`).'
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/error-response.yaml"

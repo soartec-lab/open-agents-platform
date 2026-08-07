@@ -1,0 +1,16 @@
+# Path item for GET /health (packages/agent-backend/src/handlers/meta/).
+get:
+  operationId: getHealth
+  tags: [meta]
+  summary: Liveness probe
+  description: |
+    Reports service liveness and whether a live LLM key is configured.
+    Not called by the SPA — intended for smoke tests and monitoring.
+  security: []
+  responses:
+    "200":
+      description: Service is up.
+      content:
+        application/json:
+          schema:
+            $ref: "../schema/health-response.yaml"

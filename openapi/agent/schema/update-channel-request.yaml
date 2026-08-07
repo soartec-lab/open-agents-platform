@@ -1,0 +1,15 @@
+# Body of PATCH /channels/{id}. Both fields optional; whatever is present is
+# applied.
+title: UpdateChannelRequest
+type: object
+properties:
+  name:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: New channel name (a name can never be cleared).
+  goal:
+    type: string
+    nullable: true
+    maxLength: 2000
+    description: Goal text; null clears the goal, omitted keeps it.
