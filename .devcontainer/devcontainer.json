@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+  "name": "open-agents-platform",
+
+  // Compose-based devcontainer. The dev environment is the `workspace` service in
+  // the root compose.yml. The two app services (agent-backend / agent-frontend)
+  // live in the same compose file under the `apps` profile and are not started
+  // automatically. To start them:
+  //   - from the HOST:      docker compose --profile apps up
+  //   - inside workspace:   bun --filter '*' dev
+  "dockerComposeFile": ["../compose.yml"],
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/open-agents-platform",
+  "runServices": ["workspace"],
+
+  // Real Node.js >= 22.19 (required by flue) is installed in the image itself
+  // (.devcontainer/Dockerfile), so no Node devcontainer feature is needed here.
+
+  // Keep in sync with compose.yml.
+  // 41005 is NOT forwarded: the MCP server is not part of this repo — the
+  // agent-backend reaches whatever MCP_SERVER_URL points at.
+  "forwardPorts": [41080, 41173],
+  "portsAttributes": {
+    "41080": {
+      "label": "agent-backend (flue runtime + MCP client + proxy)",
+      "onAutoForward": "notify"
+    },
+    "41173": {
+      "label": "agent-frontend (Vite chat + AppRenderer + sandbox proxy)",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Bun is preinstalled in the base image. bun install at repo root installs all packages.
+  "postCreateCommand": "bun --version && node --version",
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["biomejs.biome", "anthropic.claude-code"],
+      "settings": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+
+  "remoteUser": "root"
+}

@@ -1,0 +1,67 @@
+# Compose for open-agents-platform (agent-backend + agent-frontend, extracted
+# from flue-with-mcp-apps).
+#
+# - `workspace` is the devcontainer: a Bun + real-Node dev environment where you
+#   edit and run things.
+# - The app services (agent-backend / agent-frontend) are declared under the
+#   `apps` profile, so they do NOT start with the devcontainer. They need the
+#   package code (packages/agent-backend, packages/agent-frontend) first.
+#   Once the packages exist, run them with:  docker compose --profile apps up
+#   (or run them inside `workspace` via:     bun --filter '*' dev).
+#
+# The MCP Apps sandbox proxy is not a separate process: the agent-frontend serves
+# sandbox_proxy.html same-origin from public/ (prebuilt by vite.sandbox.config.ts).
+#
+# Ports: 41080 (agent-backend) / 41173 (agent-frontend). The MCP server (:41005)
+# is not part of this repo — the backend reaches whatever MCP_SERVER_URL points
+# at, and its tool catalog degrades gracefully when it is unreachable.
+services:
+  workspace:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspaces/open-agents-platform:cached
+      - bun-cache:/root/.bun/install/cache
+      # Persist Claude Code state (session history, memory, credentials, settings)
+      # across container rebuilds. Without this, `~/.claude` lives only in the
+      # container's ephemeral writable layer and is wiped on every rebuild.
+      - claude-data:/root/.claude
+    command: sleep infinity
+    # Ports are forwarded by the devcontainer; processes can run here directly
+    # via `bun --filter '*' dev`, or use the per-service definitions below.
+
+  agent-backend:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /workspaces/open-agents-platform
+    volumes:
+      - .:/workspaces/open-agents-platform:cached
+      - bun-cache:/root/.bun/install/cache
+    command: ["bun", "run", "--filter", "*agent-backend", "dev"]
+    # The provider API key (and any MCP URL/token override) belong in
+    # packages/agent-backend/.env — the ONLY env file the stack reads
+    # (a repo-root .env is read by nothing). See .env.example.
+    ports:
+      - "41080:41080"
+
+  agent-frontend:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /workspaces/open-agents-platform
+    volumes:
+      - .:/workspaces/open-agents-platform:cached
+      - bun-cache:/root/.bun/install/cache
+    command: ["bun", "run", "--filter", "*agent-frontend", "dev"]
+    ports:
+      - "41173:41173"
+    depends_on:
+      - agent-backend
+
+volumes:
+  bun-cache:
+  claude-data:
