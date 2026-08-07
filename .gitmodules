@@ -1,0 +1,3 @@
+[submodule "flue-with-mcp-apps"]
+	path = flue-with-mcp-apps
+	url = git@github.com:soartec-lab/flue-with-mcp-apps.git
