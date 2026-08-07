@@ -7,7 +7,15 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**/*.ts", "**/*.tsx", "**/*.json", "!node_modules", "!dist", "!bun.lock"]
+    "includes": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.json",
+      "!node_modules",
+      "!dist",
+      "!bun.lock",
+      "!flue-with-mcp-apps"
+    ]
   },
   "formatter": {
     "enabled": true,

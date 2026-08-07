@@ -17,16 +17,14 @@
   // (.devcontainer/Dockerfile), so no Node devcontainer feature is needed here.
 
   // Keep in sync with compose.yml.
-  // 41005 is NOT forwarded: the MCP server is not part of this repo — the
-  // agent-backend reaches whatever MCP_SERVER_URL points at.
   "forwardPorts": [41080, 41173],
   "portsAttributes": {
     "41080": {
-      "label": "agent-backend (flue runtime + MCP client + proxy)",
+      "label": "agent-backend (flue runtime + channel dispatch + REST)",
       "onAutoForward": "notify"
     },
     "41173": {
-      "label": "agent-frontend (Vite chat + AppRenderer + sandbox proxy)",
+      "label": "agent-frontend (React Router channel UI)",
       "onAutoForward": "silent"
     }
   },

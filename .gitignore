@@ -147,5 +147,3 @@ Thumbs.db
 .flue-vite/
 .flue-vite.wrangler.jsonc
 
-# agent-frontend sandbox proxy build artifacts (built into public/ by vite.sandbox.config.ts)
-packages/agent-frontend/public/sandbox_proxy.*
