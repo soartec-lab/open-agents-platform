@@ -19,12 +19,14 @@
 import type { Key } from "swr";
 import type { SWRMutationConfiguration } from "swr/mutation";
 import useSWRMutation from "swr/mutation";
-
+import { customFetch } from ".././fetcher";
 import type { CreateSession200, CreateSession400, CreateSessionBody } from "../schemas";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export type createSessionResponse200 = {
   data: CreateSession200;
@@ -62,20 +64,15 @@ export const createSession = async (
   createSessionBody?: CreateSessionBody,
   options?: RequestInit,
 ): Promise<createSessionResponse> => {
-  const res = await fetch(getCreateSessionUrl(), {
+  return customFetch<createSessionResponse>(getCreateSessionUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(createSessionBody),
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createSessionResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as createSessionResponse;
 };
 
-export const getCreateSessionMutationFetcher = (options?: RequestInit) => {
+export const getCreateSessionMutationFetcher = (options?: SecondParameter<typeof customFetch>) => {
   return (_: Key, { arg }: { arg: CreateSessionBody | undefined }) => {
     return createSession(arg, options);
   };
@@ -87,7 +84,7 @@ export type CreateSessionMutationResult = NonNullable<Awaited<ReturnType<typeof 
 /**
  * @summary Issue an app-session bearer token
  */
-export const useCreateSession = <TError = Promise<CreateSession400>>(options?: {
+export const useCreateSession = <TError = CreateSession400>(options?: {
   swr?: SWRMutationConfiguration<
     Awaited<ReturnType<typeof createSession>>,
     TError,
@@ -95,12 +92,12 @@ export const useCreateSession = <TError = Promise<CreateSession400>>(options?: {
     CreateSessionBody | undefined,
     Awaited<ReturnType<typeof createSession>>
   > & { swrKey?: string };
-  fetch?: RequestInit;
+  request?: SecondParameter<typeof customFetch>;
 }) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getCreateSessionMutationKey();
-  const swrFn = getCreateSessionMutationFetcher(fetchOptions);
+  const swrFn = getCreateSessionMutationFetcher(requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

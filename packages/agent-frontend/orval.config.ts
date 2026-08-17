@@ -26,6 +26,15 @@ export default defineConfig({
       // Base URL comes from the spec's `servers` entry (http://localhost:41080)
       // so the canonical port lives only in the OpenAPI contract.
       baseUrl: { getBaseUrlFromSpecification: true },
+      override: {
+        // All generated calls go through the hand-written fetcher, which owns
+        // the Authorization header (root.tsx deposits the session token there)
+        // — call sites never pass auth explicitly.
+        mutator: {
+          path: "./app/api/fetcher.ts",
+          name: "customFetch",
+        },
+      },
     },
   },
 });

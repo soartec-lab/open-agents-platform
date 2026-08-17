@@ -21,7 +21,7 @@ import type { Arguments, Key, SWRConfiguration } from "swr";
 import useSwr from "swr";
 import type { SWRMutationConfiguration } from "swr/mutation";
 import useSWRMutation from "swr/mutation";
-
+import { customFetch } from ".././fetcher";
 import type {
   CreateChannel201,
   CreateChannel400,
@@ -55,6 +55,8 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 export type getChannelsResponse200 = {
   data: GetChannels200;
   status: 200;
@@ -86,15 +88,10 @@ export const getGetChannelsUrl = () => {
  * @summary List channels with their members
  */
 export const getChannels = async (options?: RequestInit): Promise<getChannelsResponse> => {
-  const res = await fetch(getGetChannelsUrl(), {
+  return customFetch<getChannelsResponse>(getGetChannelsUrl(), {
     ...options,
     method: "GET",
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getChannelsResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as getChannelsResponse;
 };
 
 export const getGetChannelsKey = () => [`http://localhost:41080/channels`] as const;
@@ -104,18 +101,18 @@ export type GetChannelsQueryResult = NonNullable<Awaited<ReturnType<typeof getCh
 /**
  * @summary List channels with their members
  */
-export const useGetChannels = <TError = Promise<GetChannels401>>(options?: {
+export const useGetChannels = <TError = GetChannels401>(options?: {
   swr?: SWRConfiguration<Awaited<ReturnType<typeof getChannels>>, TError> & {
     swrKey?: Key;
     enabled?: boolean;
   };
-  fetch?: RequestInit;
+  request?: SecondParameter<typeof customFetch>;
 }) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const isEnabled = swrOptions?.enabled !== false;
   const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetChannelsKey() : null));
-  const swrFn = () => getChannels(fetchOptions);
+  const swrFn = () => getChannels(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
@@ -161,20 +158,15 @@ export const createChannel = async (
   createChannelBody: CreateChannelBody,
   options?: RequestInit,
 ): Promise<createChannelResponse> => {
-  const res = await fetch(getCreateChannelUrl(), {
+  return customFetch<createChannelResponse>(getCreateChannelUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(createChannelBody),
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createChannelResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as createChannelResponse;
 };
 
-export const getCreateChannelMutationFetcher = (options?: RequestInit) => {
+export const getCreateChannelMutationFetcher = (options?: SecondParameter<typeof customFetch>) => {
   return (_: Key, { arg }: { arg: CreateChannelBody }) => {
     return createChannel(arg, options);
   };
@@ -186,7 +178,7 @@ export type CreateChannelMutationResult = NonNullable<Awaited<ReturnType<typeof 
 /**
  * @summary Create a channel
  */
-export const useCreateChannel = <TError = Promise<CreateChannel400 | CreateChannel401>>(options?: {
+export const useCreateChannel = <TError = CreateChannel400 | CreateChannel401>(options?: {
   swr?: SWRMutationConfiguration<
     Awaited<ReturnType<typeof createChannel>>,
     TError,
@@ -194,12 +186,12 @@ export const useCreateChannel = <TError = Promise<CreateChannel400 | CreateChann
     CreateChannelBody,
     Awaited<ReturnType<typeof createChannel>>
   > & { swrKey?: string };
-  fetch?: RequestInit;
+  request?: SecondParameter<typeof customFetch>;
 }) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getCreateChannelMutationKey();
-  const swrFn = getCreateChannelMutationFetcher(fetchOptions);
+  const swrFn = getCreateChannelMutationFetcher(requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
@@ -256,20 +248,18 @@ export const updateChannel = async (
   updateChannelBody: UpdateChannelBody,
   options?: RequestInit,
 ): Promise<updateChannelResponse> => {
-  const res = await fetch(getUpdateChannelUrl(id), {
+  return customFetch<updateChannelResponse>(getUpdateChannelUrl(id), {
     ...options,
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(updateChannelBody),
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateChannelResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as updateChannelResponse;
 };
 
-export const getUpdateChannelMutationFetcher = (id: string, options?: RequestInit) => {
+export const getUpdateChannelMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof customFetch>,
+) => {
   return (_: Key, { arg }: { arg: UpdateChannelBody }) => {
     return updateChannel(id, arg, options);
   };
@@ -282,9 +272,7 @@ export type UpdateChannelMutationResult = NonNullable<Awaited<ReturnType<typeof 
 /**
  * @summary Update a channel's name and/or goal
  */
-export const useUpdateChannel = <
-  TError = Promise<UpdateChannel400 | UpdateChannel401 | UpdateChannel404>,
->(
+export const useUpdateChannel = <TError = UpdateChannel400 | UpdateChannel401 | UpdateChannel404>(
   id: string,
   options?: {
     swr?: SWRMutationConfiguration<
@@ -294,13 +282,13 @@ export const useUpdateChannel = <
       UpdateChannelBody,
       Awaited<ReturnType<typeof updateChannel>>
     > & { swrKey?: string };
-    fetch?: RequestInit;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getUpdateChannelMutationKey(id);
-  const swrFn = getUpdateChannelMutationFetcher(id, fetchOptions);
+  const swrFn = getUpdateChannelMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
@@ -347,18 +335,16 @@ export const deleteChannel = async (
   id: string,
   options?: RequestInit,
 ): Promise<deleteChannelResponse> => {
-  const res = await fetch(getDeleteChannelUrl(id), {
+  return customFetch<deleteChannelResponse>(getDeleteChannelUrl(id), {
     ...options,
     method: "DELETE",
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteChannelResponse["data"] = body ? JSON.parse(body) : undefined;
-  return { data, status: res.status, headers: res.headers } as deleteChannelResponse;
 };
 
-export const getDeleteChannelMutationFetcher = (id: string, options?: RequestInit) => {
+export const getDeleteChannelMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof customFetch>,
+) => {
   return (_: Key, __: { arg: Arguments }) => {
     return deleteChannel(id, options);
   };
@@ -371,7 +357,7 @@ export type DeleteChannelMutationResult = NonNullable<Awaited<ReturnType<typeof 
 /**
  * @summary Delete a channel
  */
-export const useDeleteChannel = <TError = Promise<DeleteChannel401 | DeleteChannel404>>(
+export const useDeleteChannel = <TError = DeleteChannel401 | DeleteChannel404>(
   id: string,
   options?: {
     swr?: SWRMutationConfiguration<
@@ -381,13 +367,13 @@ export const useDeleteChannel = <TError = Promise<DeleteChannel401 | DeleteChann
       Arguments,
       Awaited<ReturnType<typeof deleteChannel>>
     > & { swrKey?: string };
-    fetch?: RequestInit;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getDeleteChannelMutationKey(id);
-  const swrFn = getDeleteChannelMutationFetcher(id, fetchOptions);
+  const swrFn = getDeleteChannelMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
@@ -452,20 +438,18 @@ export const createChannelMember = async (
   createChannelMemberBody: CreateChannelMemberBody,
   options?: RequestInit,
 ): Promise<createChannelMemberResponse> => {
-  const res = await fetch(getCreateChannelMemberUrl(id), {
+  return customFetch<createChannelMemberResponse>(getCreateChannelMemberUrl(id), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(createChannelMemberBody),
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createChannelMemberResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as createChannelMemberResponse;
 };
 
-export const getCreateChannelMemberMutationFetcher = (id: string, options?: RequestInit) => {
+export const getCreateChannelMemberMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof customFetch>,
+) => {
   return (_: Key, { arg }: { arg: CreateChannelMemberBody }) => {
     return createChannelMember(id, arg, options);
   };
@@ -481,12 +465,11 @@ export type CreateChannelMemberMutationResult = NonNullable<
  * @summary Invite an agent to the channel
  */
 export const useCreateChannelMember = <
-  TError = Promise<
+  TError =
     | CreateChannelMember400
     | CreateChannelMember401
     | CreateChannelMember404
-    | CreateChannelMember409
-  >,
+    | CreateChannelMember409,
 >(
   id: string,
   options?: {
@@ -497,13 +480,13 @@ export const useCreateChannelMember = <
       CreateChannelMemberBody,
       Awaited<ReturnType<typeof createChannelMember>>
     > & { swrKey?: string };
-    fetch?: RequestInit;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getCreateChannelMemberMutationKey(id);
-  const swrFn = getCreateChannelMemberMutationFetcher(id, fetchOptions);
+  const swrFn = getCreateChannelMemberMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
@@ -555,21 +538,16 @@ export const deleteChannelMember = async (
   memberId: string,
   options?: RequestInit,
 ): Promise<deleteChannelMemberResponse> => {
-  const res = await fetch(getDeleteChannelMemberUrl(id, memberId), {
+  return customFetch<deleteChannelMemberResponse>(getDeleteChannelMemberUrl(id, memberId), {
     ...options,
     method: "DELETE",
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteChannelMemberResponse["data"] = body ? JSON.parse(body) : undefined;
-  return { data, status: res.status, headers: res.headers } as deleteChannelMemberResponse;
 };
 
 export const getDeleteChannelMemberMutationFetcher = (
   id: string,
   memberId: string,
-  options?: RequestInit,
+  options?: SecondParameter<typeof customFetch>,
 ) => {
   return (_: Key, __: { arg: Arguments }) => {
     return deleteChannelMember(id, memberId, options);
@@ -585,9 +563,7 @@ export type DeleteChannelMemberMutationResult = NonNullable<
 /**
  * @summary Remove an agent from the channel
  */
-export const useDeleteChannelMember = <
-  TError = Promise<DeleteChannelMember401 | DeleteChannelMember404>,
->(
+export const useDeleteChannelMember = <TError = DeleteChannelMember401 | DeleteChannelMember404>(
   id: string,
   memberId: string,
   options?: {
@@ -598,13 +574,13 @@ export const useDeleteChannelMember = <
       Arguments,
       Awaited<ReturnType<typeof deleteChannelMember>>
     > & { swrKey?: string };
-    fetch?: RequestInit;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getDeleteChannelMemberMutationKey(id, memberId);
-  const swrFn = getDeleteChannelMemberMutationFetcher(id, memberId, fetchOptions);
+  const swrFn = getDeleteChannelMemberMutationFetcher(id, memberId, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
@@ -679,20 +655,18 @@ export const createChannelMessage = async (
   createChannelMessageBody: CreateChannelMessageBody,
   options?: RequestInit,
 ): Promise<createChannelMessageResponse> => {
-  const res = await fetch(getCreateChannelMessageUrl(id), {
+  return customFetch<createChannelMessageResponse>(getCreateChannelMessageUrl(id), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(createChannelMessageBody),
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createChannelMessageResponse["data"] = body ? JSON.parse(body) : undefined;
-  return { data, status: res.status, headers: res.headers } as createChannelMessageResponse;
 };
 
-export const getCreateChannelMessageMutationFetcher = (id: string, options?: RequestInit) => {
+export const getCreateChannelMessageMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof customFetch>,
+) => {
   return (_: Key, { arg }: { arg: CreateChannelMessageBody }) => {
     return createChannelMessage(id, arg, options);
   };
@@ -708,12 +682,11 @@ export type CreateChannelMessageMutationResult = NonNullable<
  * @summary Post a message to the channel
  */
 export const useCreateChannelMessage = <
-  TError = Promise<
+  TError =
     | CreateChannelMessage400
     | CreateChannelMessage401
     | CreateChannelMessage404
-    | CreateChannelMessage409
-  >,
+    | CreateChannelMessage409,
 >(
   id: string,
   options?: {
@@ -724,13 +697,13 @@ export const useCreateChannelMessage = <
       CreateChannelMessageBody,
       Awaited<ReturnType<typeof createChannelMessage>>
     > & { swrKey?: string };
-    fetch?: RequestInit;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getCreateChannelMessageMutationKey(id);
-  const swrFn = getCreateChannelMessageMutationFetcher(id, fetchOptions);
+  const swrFn = getCreateChannelMessageMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

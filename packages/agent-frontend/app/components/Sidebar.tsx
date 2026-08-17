@@ -9,15 +9,14 @@ import { BotIcon, HashIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { useGetChannels } from "../api/channels/channels.ts";
-import { bearer } from "../lib/bearer.ts";
 import { CreateChannelDialog } from "../routes/channels/CreateChannelDialog.tsx";
 import { Button } from "./ui/button.tsx";
 import { ScrollArea } from "./ui/scroll-area.tsx";
 
-export function Sidebar({ token }: { token: string }) {
+export function Sidebar() {
   const navigate = useNavigate();
   const [createOpen, setCreateOpen] = useState(false);
-  const { data: channelsRes } = useGetChannels({ fetch: { headers: bearer(token) } });
+  const { data: channelsRes } = useGetChannels();
   const channels = channelsRes?.status === 200 ? channelsRes.data.channels : [];
 
   const itemClass = "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm";
@@ -76,7 +75,6 @@ export function Sidebar({ token }: { token: string }) {
 
       <CreateChannelDialog
         open={createOpen}
-        token={token}
         onClose={() => setCreateOpen(false)}
         onCreated={(channelId) => {
           setCreateOpen(false);

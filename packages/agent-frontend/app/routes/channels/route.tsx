@@ -28,14 +28,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../componen
 import { Input } from "../../components/ui/input.tsx";
 import { Label } from "../../components/ui/label.tsx";
 import { Textarea } from "../../components/ui/textarea.tsx";
-import { bearer } from "../../lib/bearer.ts";
-import { isInputRow, messageTimestamp } from "../../lib/message-time.ts";
+import type { AppOutletContext, ConversationClientFactory } from "../../root.tsx";
 import {
-  type ConversationClientFactory,
-  useObservedConversations,
-} from "../../lib/useObservedConversation.ts";
-import type { AppOutletContext } from "../../root.tsx";
-import { ChannelTimeline, type PendingPost, parseChannelDispatch } from "./ChannelTimeline.tsx";
+  ChannelTimeline,
+  isInputRow,
+  messageTimestamp,
+  type PendingPost,
+  parseChannelDispatch,
+} from "./ChannelTimeline.tsx";
 import { InviteMembersDialog } from "./InviteMembersDialog.tsx";
 import {
   avatarColor,
@@ -46,14 +46,13 @@ import {
   orchestratorTarget,
   resolveMention,
 } from "./members.ts";
+import { useObservedConversations } from "./useObservedConversation.ts";
 
 export default function ChannelRoute() {
-  const { conversationFor, token } = useOutletContext<AppOutletContext>();
+  const { conversationFor } = useOutletContext<AppOutletContext>();
   const { channelId } = useParams<{ channelId: string }>();
   const navigate = useNavigate();
-  const { data: channelsRes, isLoading } = useGetChannels({
-    fetch: { headers: bearer(token) },
-  });
+  const { data: channelsRes, isLoading } = useGetChannels();
   const channel =
     channelsRes?.status === 200
       ? (channelsRes.data.channels.find((c) => c.id === channelId) ?? null)
@@ -73,7 +72,6 @@ export default function ChannelRoute() {
       // across a channel switch.
       key={channel.id}
       conversationFor={conversationFor}
-      token={token}
       channel={channel}
       onChanged={() => void mutate(getGetChannelsKey())}
       onDeleted={() => {
@@ -86,13 +84,11 @@ export default function ChannelRoute() {
 
 function ChannelRoom({
   conversationFor,
-  token,
   channel,
   onChanged,
   onDeleted,
 }: {
   conversationFor: ConversationClientFactory;
-  token: string;
   channel: Channel;
   onChanged: () => void;
   onDeleted: () => void;
@@ -121,9 +117,7 @@ function ChannelRoom({
 
   // The memberId travels in the BODY, so one mutation hook serves every
   // routing shape. The composer deliberately never locks.
-  const { trigger: postMessage } = useCreateChannelMessage(channel.id, {
-    fetch: { headers: bearer(token) },
-  });
+  const { trigger: postMessage } = useCreateChannelMessage(channel.id);
 
   // Retire an optimistic echo only when ITS OWN dispatch row is visible in a
   // conversation: same text AND newer than the echo's sentAt (with clock
@@ -248,7 +242,6 @@ function ChannelRoom({
               key={member.id}
               channelId={channel.id}
               member={member}
-              token={token}
               onChanged={onChanged}
             />
           ))}
@@ -308,7 +301,6 @@ function ChannelRoom({
       <EditChannelDialog
         open={editOpen}
         channel={channel}
-        token={token}
         onClose={() => setEditOpen(false)}
         onChanged={onChanged}
         onDeleted={onDeleted}
@@ -316,7 +308,6 @@ function ChannelRoom({
       <InviteMembersDialog
         open={inviteOpen}
         channel={channel}
-        token={token}
         onClose={() => setInviteOpen(false)}
         onChanged={onChanged}
       />
@@ -328,18 +319,15 @@ function ChannelRoom({
 function MemberChip({
   channelId,
   member,
-  token,
   onChanged,
 }: {
   channelId: string;
   member: ChannelMember;
-  token: string;
   onChanged: () => void;
 }) {
   const { trigger: removeMember, isMutating: removing } = useDeleteChannelMember(
     channelId,
     member.id,
-    { fetch: { headers: bearer(token) } },
   );
 
   const handleRemove = async () => {
@@ -376,14 +364,12 @@ function MemberChip({
 function EditChannelDialog({
   open,
   channel,
-  token,
   onClose,
   onChanged,
   onDeleted,
 }: {
   open: boolean;
   channel: Channel;
-  token: string;
   onClose: () => void;
   onChanged: () => void;
   onDeleted: () => void;
@@ -392,12 +378,8 @@ function EditChannelDialog({
   const [goal, setGoal] = useState(channel.goal ?? "");
   const [error, setError] = useState<string | null>(null);
 
-  const { trigger: update, isMutating: saving } = useUpdateChannel(channel.id, {
-    fetch: { headers: bearer(token) },
-  });
-  const { trigger: remove, isMutating: deleting } = useDeleteChannel(channel.id, {
-    fetch: { headers: bearer(token) },
-  });
+  const { trigger: update, isMutating: saving } = useUpdateChannel(channel.id);
+  const { trigger: remove, isMutating: deleting } = useDeleteChannel(channel.id);
 
   const handleSave = async () => {
     if (saving || !name.trim()) return;

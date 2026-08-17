@@ -10,7 +10,7 @@
  */
 
 import type { ChannelMember } from "../../api/schemas";
-import type { ObservationTarget } from "../../lib/useObservedConversation.ts";
+import type { ObservationTarget } from "./useObservedConversation.ts";
 
 /** The orchestrator's display label (it is a fixture, not a member). */
 export const ORCHESTRATOR_LABEL = "Orchestrator";

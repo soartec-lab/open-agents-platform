@@ -7,7 +7,6 @@
 
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { useOutletContext } from "react-router";
 import { mutate } from "swr";
 import {
   getGetAgentConfigsKey,
@@ -24,8 +23,6 @@ import { Input } from "../../components/ui/input.tsx";
 import { Label } from "../../components/ui/label.tsx";
 import { ScrollArea } from "../../components/ui/scroll-area.tsx";
 import { Textarea } from "../../components/ui/textarea.tsx";
-import { bearer } from "../../lib/bearer.ts";
-import type { AppOutletContext } from "../../root.tsx";
 import { avatarColor, avatarInitials } from "../channels/members.ts";
 
 const NAME_MAX = 100;
@@ -39,13 +36,10 @@ const refreshCatalog = () => {
 };
 
 export default function AgentsRoute() {
-  const { token } = useOutletContext<AppOutletContext>();
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<AgentConfig | null>(null);
 
-  const { data: configsRes, isLoading } = useGetAgentConfigs({
-    fetch: { headers: bearer(token) },
-  });
+  const { data: configsRes, isLoading } = useGetAgentConfigs();
   const configs = configsRes?.status === 200 ? configsRes.data.configs : [];
 
   return (
@@ -70,12 +64,7 @@ export default function AgentsRoute() {
             </p>
           )}
           {configs.map((config) => (
-            <AgentRow
-              key={config.id}
-              config={config}
-              token={token}
-              onEdit={() => setEditing(config)}
-            />
+            <AgentRow key={config.id} config={config} onEdit={() => setEditing(config)} />
           ))}
         </div>
       </ScrollArea>
@@ -83,34 +72,17 @@ export default function AgentsRoute() {
       <AgentFormDialog
         key={createOpen ? "create" : "create-closed"}
         open={createOpen}
-        token={token}
         onClose={() => setCreateOpen(false)}
       />
       {editing && (
-        <AgentFormDialog
-          key={editing.id}
-          open
-          token={token}
-          config={editing}
-          onClose={() => setEditing(null)}
-        />
+        <AgentFormDialog key={editing.id} open config={editing} onClose={() => setEditing(null)} />
       )}
     </div>
   );
 }
 
-function AgentRow({
-  config,
-  token,
-  onEdit,
-}: {
-  config: AgentConfig;
-  token: string;
-  onEdit: () => void;
-}) {
-  const { trigger: remove, isMutating: deleting } = useDeleteAgentConfig(config.id, {
-    fetch: { headers: bearer(token) },
-  });
+function AgentRow({ config, onEdit }: { config: AgentConfig; onEdit: () => void }) {
+  const { trigger: remove, isMutating: deleting } = useDeleteAgentConfig(config.id);
 
   const handleDelete = async () => {
     if (deleting) return;
@@ -154,12 +126,10 @@ function AgentRow({
 /** Create (no `config`) or edit (`config` set) an agent. */
 function AgentFormDialog({
   open,
-  token,
   config,
   onClose,
 }: {
   open: boolean;
-  token: string;
   config?: AgentConfig;
   onClose: () => void;
 }) {
@@ -168,12 +138,8 @@ function AgentFormDialog({
   const [instructions, setInstructions] = useState(config?.instructions ?? "");
   const [error, setError] = useState<string | null>(null);
 
-  const { trigger: create, isMutating: creating } = useCreateAgentConfig({
-    fetch: { headers: bearer(token) },
-  });
-  const { trigger: update, isMutating: updating } = useUpdateAgentConfig(config?.id ?? "", {
-    fetch: { headers: bearer(token) },
-  });
+  const { trigger: create, isMutating: creating } = useCreateAgentConfig();
+  const { trigger: update, isMutating: updating } = useUpdateAgentConfig(config?.id ?? "");
   const saving = creating || updating;
 
   const handleSave = async () => {

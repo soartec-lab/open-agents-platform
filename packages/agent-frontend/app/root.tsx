@@ -15,12 +15,21 @@ import { createFlueClient, type FlueClient } from "@flue/sdk";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import { setSessionToken } from "./api/fetcher.ts";
 import { createSession } from "./api/session/session.ts";
 import { Sidebar } from "./components/Sidebar.tsx";
 import { BACKEND_URL } from "./config.ts";
-import type { ConversationClientFactory } from "./lib/useObservedConversation.ts";
 
 import "./app.css";
+
+/**
+ * Resolves the memoized conversation client for one flue conversation —
+ * `${BACKEND_URL}/agents/<agentName>/<instanceId>` under the current session
+ * token. Stable identity per (agentName, instanceId) for the lifetime of a
+ * session, so hooks can key effects on the returned client. (REST calls are
+ * separate: the generated client authenticates itself via api/fetcher.ts.)
+ */
+export type ConversationClientFactory = (agentName: string, instanceId: string) => FlueClient;
 
 /**
  * localStorage key holding the app-session id. Persisting the id (never the
@@ -31,8 +40,6 @@ const SESSION_ID_STORAGE_KEY = "open-agents-platform.session-id";
 /** Shared state the routes receive via useOutletContext. */
 export interface AppOutletContext {
   conversationFor: ConversationClientFactory;
-  token: string;
-  sessionId: string;
 }
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -78,6 +85,9 @@ export default function App() {
         }
         const id = res.data.sessionId;
         localStorage.setItem(SESSION_ID_STORAGE_KEY, id);
+        // The REST layer authenticates itself from here on (api/fetcher.ts);
+        // deposit the token BEFORE anything rendering generated hooks mounts.
+        setSessionToken(res.data.token);
         setSessionData({ token: res.data.token, sessionId: id });
       })
       .catch((err: unknown) => {
@@ -138,15 +148,11 @@ export default function App() {
     );
   }
 
-  const context: AppOutletContext = {
-    conversationFor,
-    token: sessionData.token,
-    sessionId: sessionData.sessionId,
-  };
+  const context: AppOutletContext = { conversationFor };
 
   return (
     <div className="flex h-screen">
-      <Sidebar token={sessionData.token} />
+      <Sidebar />
       <div className="min-h-0 min-w-0 flex-1">
         <Outlet context={context} />
       </div>

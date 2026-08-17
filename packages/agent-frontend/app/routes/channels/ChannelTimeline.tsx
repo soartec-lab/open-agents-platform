@@ -39,8 +39,6 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "../../components/ui/message-scroller.tsx";
-import { formatWhen, isAdvisoryRow, isInputRow, messageTimestamp } from "../../lib/message-time.ts";
-import { observationKey } from "../../lib/useObservedConversation.ts";
 import {
   avatarColor,
   avatarInitials,
@@ -49,6 +47,7 @@ import {
   ORCHESTRATOR_LABEL,
   orchestratorTarget,
 } from "./members.ts";
+import { observationKey } from "./useObservedConversation.ts";
 
 /**
  * One optimistically-echoed user post: rendered the moment Send is pressed,
@@ -70,6 +69,58 @@ export interface PendingPost {
    */
   sentAt: string;
 }
+
+// ── Message classification (absorbed from the former lib/message-time.ts —
+// these are timeline concerns, so they live with the timeline) ──────────────
+//
+// Two load-bearing projection facts the merge is built on:
+//  - `metadata` is entirely AGENT-authored — every agent in the backend
+//    stamps `{ timestamp }` itself with a `useResponseStart` hook, and a
+//    dispatch input row carries its own `firedAt` field inside its JSON body.
+//  - Messages carry a typed `purpose` (`user` / `assistant` / `dispatch` /
+//    `advisory`), so detecting an input row does not rely on role heuristics.
+
+/**
+ * An input row: a dispatched input (a user post or an orchestrator
+ * delegation) or a real user chat message. Everything else is agent output
+ * (or a runtime advisory).
+ */
+export function isInputRow(message: FlueConversationMessage): boolean {
+  return message.purpose === "dispatch" || message.purpose === "user";
+}
+
+/**
+ * A runtime advisory (resource-change narrations, terminal advisories). The
+ * merge skips these — they are model-facing bookkeeping, not conversation.
+ */
+function isAdvisoryRow(message: FlueConversationMessage): boolean {
+  return message.purpose === "advisory";
+}
+
+/**
+ * Best-effort ISO timestamp for ordering the merge: the agent-authored
+ * response metadata first, then a dispatch input's own `firedAt`. Empty string
+ * when neither exists (sorts first — stable enough for display).
+ */
+export function messageTimestamp(message: FlueConversationMessage): string {
+  const stamped = message.metadata?.timestamp;
+  if (typeof stamped === "string") return stamped;
+  if (isInputRow(message)) {
+    const text = message.parts.flatMap((p) => (p.type === "text" ? [p.text] : [])).join("\n");
+    try {
+      const parsed: unknown = JSON.parse(text);
+      const firedAt = (parsed as { firedAt?: unknown }).firedAt;
+      if (typeof firedAt === "string") return firedAt;
+    } catch {
+      // plain-text input (a real chat message) — no timestamp to recover
+    }
+  }
+  return "";
+}
+
+/** Compact display form of an ISO timestamp ("2026-08-17 12:34:56"). */
+const formatWhen = (iso: string | null | undefined) =>
+  iso ? iso.slice(0, 19).replace("T", " ") : null;
 
 /** Who a merged row belongs to: a member conversation or the orchestrator's. */
 export type RowSource = { kind: "member"; member: ChannelMember } | { kind: "orchestrator" };

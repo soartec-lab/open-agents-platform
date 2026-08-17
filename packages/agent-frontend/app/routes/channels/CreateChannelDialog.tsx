@@ -18,19 +18,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../componen
 import { Input } from "../../components/ui/input.tsx";
 import { Label } from "../../components/ui/label.tsx";
 import { Textarea } from "../../components/ui/textarea.tsx";
-import { bearer } from "../../lib/bearer.ts";
 
 const NAME_MAX = 100;
 const GOAL_MAX = 2000;
 
 export function CreateChannelDialog({
   open,
-  token,
   onClose,
   onCreated,
 }: {
   open: boolean;
-  token: string;
   onClose: () => void;
   onCreated: (channelId: string) => void;
 }) {
@@ -39,15 +36,10 @@ export function CreateChannelDialog({
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
-  const { data: configsRes } = useGetAgentConfigs({
-    swr: { enabled: open },
-    fetch: { headers: bearer(token) },
-  });
+  const { data: configsRes } = useGetAgentConfigs({ swr: { enabled: open } });
   const configs = configsRes?.status === 200 ? configsRes.data.configs : [];
 
-  const { trigger: create, isMutating } = useCreateChannel({
-    fetch: { headers: bearer(token) },
-  });
+  const { trigger: create, isMutating } = useCreateChannel();
 
   const toggle = (configId: string) =>
     setChecked((prev) => {
@@ -81,7 +73,7 @@ export function CreateChannelDialog({
       }
       const channelId = res.data.id;
       for (const configId of checked) {
-        await createChannelMember(channelId, { configId }, { headers: bearer(token) });
+        await createChannelMember(channelId, { configId });
       }
       await mutate(getGetChannelsKey());
       reset();

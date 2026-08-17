@@ -23,20 +23,9 @@
  * until the conversation exists, then attaches live).
  */
 
-import type {
-  AgentConversationObservation,
-  AgentConversationObservationSnapshot,
-  FlueClient,
-} from "@flue/sdk";
+import type { AgentConversationObservation, AgentConversationObservationSnapshot } from "@flue/sdk";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-/**
- * The app's conversation-client factory: one memoized, conversation-scoped
- * FlueClient per (agentName, instanceId). Built by root.tsx (it owns the
- * session token the clients carry); declared here so the lib layer does not
- * import from the route tree.
- */
-export type ConversationClientFactory = (agentName: string, instanceId: string) => FlueClient;
+import type { ConversationClientFactory } from "../../root.tsx";
 
 const ABSENT_REPROBE_MS = 10_000;
 

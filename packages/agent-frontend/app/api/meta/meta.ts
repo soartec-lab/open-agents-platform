@@ -19,12 +19,14 @@
 
 import type { Key, SWRConfiguration } from "swr";
 import useSwr from "swr";
-
+import { customFetch } from ".././fetcher";
 import type { GetHealth200 } from "../schemas";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export type getHealthResponse200 = {
   data: GetHealth200;
@@ -47,15 +49,10 @@ export const getGetHealthUrl = () => {
  * @summary Liveness probe
  */
 export const getHealth = async (options?: RequestInit): Promise<getHealthResponse> => {
-  const res = await fetch(getGetHealthUrl(), {
+  return customFetch<getHealthResponse>(getGetHealthUrl(), {
     ...options,
     method: "GET",
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getHealthResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as getHealthResponse;
 };
 
 export const getGetHealthKey = () => [`http://localhost:41080/health`] as const;
@@ -65,18 +62,18 @@ export type GetHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getHeal
 /**
  * @summary Liveness probe
  */
-export const useGetHealth = <TError = Promise<unknown>>(options?: {
+export const useGetHealth = <TError = unknown>(options?: {
   swr?: SWRConfiguration<Awaited<ReturnType<typeof getHealth>>, TError> & {
     swrKey?: Key;
     enabled?: boolean;
   };
-  fetch?: RequestInit;
+  request?: SecondParameter<typeof customFetch>;
 }) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const isEnabled = swrOptions?.enabled !== false;
   const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetHealthKey() : null));
-  const swrFn = () => getHealth(fetchOptions);
+  const swrFn = () => getHealth(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 

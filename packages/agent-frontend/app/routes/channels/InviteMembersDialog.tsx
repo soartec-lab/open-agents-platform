@@ -10,18 +10,15 @@ import type { Channel } from "../../api/schemas";
 import { Button } from "../../components/ui/button.tsx";
 import { Checkbox } from "../../components/ui/checkbox.tsx";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog.tsx";
-import { bearer } from "../../lib/bearer.ts";
 
 export function InviteMembersDialog({
   open,
   channel,
-  token,
   onClose,
   onChanged,
 }: {
   open: boolean;
   channel: Channel;
-  token: string;
   onClose: () => void;
   onChanged: () => void;
 }) {
@@ -29,10 +26,7 @@ export function InviteMembersDialog({
   const [inviting, setInviting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: configsRes } = useGetAgentConfigs({
-    swr: { enabled: open },
-    fetch: { headers: bearer(token) },
-  });
+  const { data: configsRes } = useGetAgentConfigs({ swr: { enabled: open } });
   const memberIds = new Set(channel.members.map((m) => m.configId));
   const candidates = (configsRes?.status === 200 ? configsRes.data.configs : []).filter(
     (config) => !memberIds.has(config.id),
@@ -61,7 +55,7 @@ export function InviteMembersDialog({
     setError(null);
     try {
       for (const configId of checked) {
-        const res = await createChannelMember(channel.id, { configId }, { headers: bearer(token) });
+        const res = await createChannelMember(channel.id, { configId });
         if (res.status !== 201 && res.status !== 409) {
           throw new Error(`Invite failed (HTTP ${res.status}).`);
         }

@@ -21,7 +21,7 @@ import type { Arguments, Key, SWRConfiguration } from "swr";
 import useSwr from "swr";
 import type { SWRMutationConfiguration } from "swr/mutation";
 import useSWRMutation from "swr/mutation";
-
+import { customFetch } from ".././fetcher";
 import type {
   CreateAgentConfig201,
   CreateAgentConfig400,
@@ -43,6 +43,8 @@ import type {
 type AwaitedInput<T> = PromiseLike<T> | T;
 
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export type getAgentConfigsResponse200 = {
   data: GetAgentConfigs200;
@@ -74,15 +76,10 @@ export const getGetAgentConfigsUrl = () => {
  * @summary List stored agents
  */
 export const getAgentConfigs = async (options?: RequestInit): Promise<getAgentConfigsResponse> => {
-  const res = await fetch(getGetAgentConfigsUrl(), {
+  return customFetch<getAgentConfigsResponse>(getGetAgentConfigsUrl(), {
     ...options,
     method: "GET",
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAgentConfigsResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as getAgentConfigsResponse;
 };
 
 export const getGetAgentConfigsKey = () => [`http://localhost:41080/agent-configs`] as const;
@@ -92,18 +89,18 @@ export type GetAgentConfigsQueryResult = NonNullable<Awaited<ReturnType<typeof g
 /**
  * @summary List stored agents
  */
-export const useGetAgentConfigs = <TError = Promise<GetAgentConfigs401>>(options?: {
+export const useGetAgentConfigs = <TError = GetAgentConfigs401>(options?: {
   swr?: SWRConfiguration<Awaited<ReturnType<typeof getAgentConfigs>>, TError> & {
     swrKey?: Key;
     enabled?: boolean;
   };
-  fetch?: RequestInit;
+  request?: SecondParameter<typeof customFetch>;
 }) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const isEnabled = swrOptions?.enabled !== false;
   const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetAgentConfigsKey() : null));
-  const swrFn = () => getAgentConfigs(fetchOptions);
+  const swrFn = () => getAgentConfigs(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
@@ -163,20 +160,17 @@ export const createAgentConfig = async (
   createAgentConfigBody: CreateAgentConfigBody,
   options?: RequestInit,
 ): Promise<createAgentConfigResponse> => {
-  const res = await fetch(getCreateAgentConfigUrl(), {
+  return customFetch<createAgentConfigResponse>(getCreateAgentConfigUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(createAgentConfigBody),
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createAgentConfigResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as createAgentConfigResponse;
 };
 
-export const getCreateAgentConfigMutationFetcher = (options?: RequestInit) => {
+export const getCreateAgentConfigMutationFetcher = (
+  options?: SecondParameter<typeof customFetch>,
+) => {
   return (_: Key, { arg }: { arg: CreateAgentConfigBody }) => {
     return createAgentConfig(arg, options);
   };
@@ -192,7 +186,7 @@ export type CreateAgentConfigMutationResult = NonNullable<
  * @summary Create an agent
  */
 export const useCreateAgentConfig = <
-  TError = Promise<CreateAgentConfig400 | CreateAgentConfig401 | CreateAgentConfig409>,
+  TError = CreateAgentConfig400 | CreateAgentConfig401 | CreateAgentConfig409,
 >(options?: {
   swr?: SWRMutationConfiguration<
     Awaited<ReturnType<typeof createAgentConfig>>,
@@ -201,12 +195,12 @@ export const useCreateAgentConfig = <
     CreateAgentConfigBody,
     Awaited<ReturnType<typeof createAgentConfig>>
   > & { swrKey?: string };
-  fetch?: RequestInit;
+  request?: SecondParameter<typeof customFetch>;
 }) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getCreateAgentConfigMutationKey();
-  const swrFn = getCreateAgentConfigMutationFetcher(fetchOptions);
+  const swrFn = getCreateAgentConfigMutationFetcher(requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
@@ -270,20 +264,18 @@ export const updateAgentConfig = async (
   updateAgentConfigBody: UpdateAgentConfigBody,
   options?: RequestInit,
 ): Promise<updateAgentConfigResponse> => {
-  const res = await fetch(getUpdateAgentConfigUrl(id), {
+  return customFetch<updateAgentConfigResponse>(getUpdateAgentConfigUrl(id), {
     ...options,
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(updateAgentConfigBody),
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateAgentConfigResponse["data"] = body ? JSON.parse(body) : {};
-  return { data, status: res.status, headers: res.headers } as updateAgentConfigResponse;
 };
 
-export const getUpdateAgentConfigMutationFetcher = (id: string, options?: RequestInit) => {
+export const getUpdateAgentConfigMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof customFetch>,
+) => {
   return (_: Key, { arg }: { arg: UpdateAgentConfigBody }) => {
     return updateAgentConfig(id, arg, options);
   };
@@ -299,9 +291,11 @@ export type UpdateAgentConfigMutationResult = NonNullable<
  * @summary Update an agent's name, instructions, and/or role
  */
 export const useUpdateAgentConfig = <
-  TError = Promise<
-    UpdateAgentConfig400 | UpdateAgentConfig401 | UpdateAgentConfig404 | UpdateAgentConfig409
-  >,
+  TError =
+    | UpdateAgentConfig400
+    | UpdateAgentConfig401
+    | UpdateAgentConfig404
+    | UpdateAgentConfig409,
 >(
   id: string,
   options?: {
@@ -312,13 +306,13 @@ export const useUpdateAgentConfig = <
       UpdateAgentConfigBody,
       Awaited<ReturnType<typeof updateAgentConfig>>
     > & { swrKey?: string };
-    fetch?: RequestInit;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getUpdateAgentConfigMutationKey(id);
-  const swrFn = getUpdateAgentConfigMutationFetcher(id, fetchOptions);
+  const swrFn = getUpdateAgentConfigMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
@@ -371,18 +365,16 @@ export const deleteAgentConfig = async (
   id: string,
   options?: RequestInit,
 ): Promise<deleteAgentConfigResponse> => {
-  const res = await fetch(getDeleteAgentConfigUrl(id), {
+  return customFetch<deleteAgentConfigResponse>(getDeleteAgentConfigUrl(id), {
     ...options,
     method: "DELETE",
   });
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteAgentConfigResponse["data"] = body ? JSON.parse(body) : undefined;
-  return { data, status: res.status, headers: res.headers } as deleteAgentConfigResponse;
 };
 
-export const getDeleteAgentConfigMutationFetcher = (id: string, options?: RequestInit) => {
+export const getDeleteAgentConfigMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof customFetch>,
+) => {
   return (_: Key, __: { arg: Arguments }) => {
     return deleteAgentConfig(id, options);
   };
@@ -397,7 +389,7 @@ export type DeleteAgentConfigMutationResult = NonNullable<
 /**
  * @summary Delete an agent
  */
-export const useDeleteAgentConfig = <TError = Promise<DeleteAgentConfig401 | DeleteAgentConfig404>>(
+export const useDeleteAgentConfig = <TError = DeleteAgentConfig401 | DeleteAgentConfig404>(
   id: string,
   options?: {
     swr?: SWRMutationConfiguration<
@@ -407,13 +399,13 @@ export const useDeleteAgentConfig = <TError = Promise<DeleteAgentConfig401 | Del
       Arguments,
       Awaited<ReturnType<typeof deleteAgentConfig>>
     > & { swrKey?: string };
-    fetch?: RequestInit;
+    request?: SecondParameter<typeof customFetch>;
   },
 ) => {
-  const { swr: swrOptions, fetch: fetchOptions } = options ?? {};
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getDeleteAgentConfigMutationKey(id);
-  const swrFn = getDeleteAgentConfigMutationFetcher(id, fetchOptions);
+  const swrFn = getDeleteAgentConfigMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
