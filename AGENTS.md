@@ -124,15 +124,19 @@ and marked untrusted in its prompt.
 ```
 packages/agent-frontend/app/
   root.tsx            # silent session bootstrap + memoized conversation-client factory
+                      #   (owns the ConversationClientFactory type)
   components/Sidebar.tsx  # channels list (+ create) + Agents nav — shared by all routes
   routes/
     home/             # empty state
-    channels/         # the room: goal header, member chips, merged timeline, composer
+    channels/         # the room: goal header, member chips, merged timeline, composer;
+                      #   also owns useObservedConversation.ts (SSE observation hooks) and
+                      #   the message classification/timestamp helpers (in ChannelTimeline)
     agents/           # AgentConfig CRUD
-  lib/
-    useObservedConversation.ts  # SSE observation hooks (owns ConversationClientFactory)
-    message-time.ts   # purpose classification + timestamp recovery + formatWhen
+  lib/utils.ts        # the ONLY lib file (shadcn regenerates imports against it) —
+                      #   do not grow lib/ back; pair helpers with their consumers instead
   api/                # orval-generated SWR client (base URL baked from the contract)
+    fetcher.ts        # hand-written custom-fetch mutator: owns REST auth end to end
+                      #   (root.tsx deposits the session token; no call site passes headers)
 ```
 
 Frontend gotchas that are load-bearing: the room is keyed per channel id (state must not
@@ -193,7 +197,9 @@ Or from the host: `docker compose --profile apps up`.
   validator silently strips undeclared keys; nullable model fields must be mapped to
   ABSENT fields in handlers or the response validator rejects the row).
 - **Contract `servers` entry** (`http://localhost:41080`) must stay — the frontend orval
-  config bakes its REST base URL from it.
+  config bakes its REST base URL from it. The frontend config also pins
+  `override.mutator` to `app/api/fetcher.ts` (hand-written, regen-safe) — REST auth is
+  injected there, never passed per call site.
 - **Lint/format:** Biome; overrides suppress rules only for generated paths; the
   `flue-with-mcp-apps` submodule is excluded (it is its own biome root).
 - **English** for code, docs, and commit messages. Commits are fine-grained, committed
