@@ -25,7 +25,11 @@ https://github.com/user-attachments/assets/ec974493-ec2a-4424-9665-35eed20868e9
   `delegate_to_member` tool.
 - **Replies land directly in one timeline** — every member's conversation is
   observed live (SSE) and merged client-side into a single channel timeline.
-  Members answer in their own voice; nothing is relayed or paraphrased.
+  Members answer in their own voice, never paraphrased.
+- **Autonomous hand-off chains** — when the orchestrator delegates, the
+  member's finished reply is reported back to it, so it can pass the result
+  to the next member (or wrap up) on its own, capped per post. Design:
+  [docs/plans/orchestrator-relay.md](docs/plans/orchestrator-relay.md)
 - **@mentions** — address a member directly with a leading `@Name` to bypass
   the orchestrator.
 - **A safe prompt boundary** — user-written instructions are sanitized and
@@ -67,6 +71,35 @@ every agent runs in its own per-channel conversation; the room observes
 them all live and merges them into one timeline by timestamp
 ```
 
+When the orchestrator delegates, a **relay dispatcher** (deterministic
+backend code, not an AI agent) watches the member's run and feeds the result
+back, so a hand-off chain continues without you relaying results by hand:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant O as Orchestrator
+    participant RD as Relay dispatcher
+    participant A as Member A
+    participant B as Member B
+
+    User->>O: post ("research X, then have B summarize")
+    O->>A: delegate_to_member (instruction)
+    activate A
+    Note over RD: watcher starts,<br/>waits for A to finish
+    A-->>User: reply lands in the timeline
+    deactivate A
+    RD->>O: memberReport { member: A, text }
+    O->>B: delegate_to_member (A's findings folded in)
+    activate B
+    Note over RD: second watcher
+    B-->>User: reply lands in the timeline
+    deactivate B
+    RD->>O: memberReport { member: B, text }
+    O-->>User: 1–2 sentence wrap-up
+    Note over O,RD: capped at MAX_RELAY_COUNT (3)<br/>reports per user post
+```
+
 Backend: [Hono](https://hono.dev) + [Prisma](https://prisma.io)/SQLite around
 the [flue](https://www.npmjs.com/package/flue) agent runtime, with an
 OpenAPI-first REST surface (orval-generated on both sides). Frontend: React
@@ -75,9 +108,6 @@ Router SPA with Tailwind + shadcn/ui. v1 runs every agent on Anthropic Sonnet
 
 ## Roadmap
 
-- **Orchestrator relay** — feed member results back to the orchestrator so it
-  can pass work onward autonomously (today the human relays between steps, as
-  in the demo). Design: [docs/plans/orchestrator-relay.md](docs/plans/orchestrator-relay.md)
 - MCP tool integration for member agents
 - User identity / ownership of agents and channels
 - More model providers
