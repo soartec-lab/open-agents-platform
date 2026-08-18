@@ -24,8 +24,14 @@ services:
       # container's ephemeral writable layer and is wiped on every rebuild.
       - claude-data:/root/.claude
     command: sleep infinity
-    # Ports are forwarded by the devcontainer; processes can run here directly
-    # via `bun --filter '*' dev`, or use the per-service definitions below.
+    # Publish the dev ports from THIS container too: `bun --filter '*' dev`
+    # runs inside the workspace, so relying on the editor's auto-forward alone
+    # leaves the stack unreachable from the host browser when that forward
+    # doesn't kick in. Don't run `--profile apps` at the same time — the app
+    # services publish the same host ports.
+    ports:
+      - "42080:42080"
+      - "42173:42173"
 
   agent-backend:
     profiles: ["apps"]
