@@ -11,7 +11,9 @@
  *  - a member-conversation dispatch row: `delegatedBy: "orchestrator"` renders
  *    as the orchestrator's own "@member <instruction>" hand-off post;
  *    otherwise it is the user's bubble (1:1 channel or @mention).
- *  - an orchestrator-conversation dispatch row: the user's bubble.
+ *  - an orchestrator-conversation dispatch row: the user's bubble — except a
+ *    `memberReport` relay row (src/relay-dispatcher.ts), which is hidden: the
+ *    member's reply already renders from its own conversation.
  *  - agent turns: prose in bubbles; the orchestrator's delegate_to_member
  *    tool call renders as a one-line activity note ("asked X to help"), never
  *    a fake message. Contentless assistant turns (provider retries) are
@@ -134,6 +136,8 @@ export function parseChannelDispatch(message: FlueConversationMessage): {
   /** The user's post (`message`) or the delivered work item (`instruction`). */
   text: string | null;
   delegatedBy: string | null;
+  /** A relayed member report (src/relay-dispatcher.ts) — hidden, never text. */
+  memberReport: boolean;
 } {
   const raw = message.parts.find((p) => p.type === "text")?.text ?? "";
   try {
@@ -141,13 +145,15 @@ export function parseChannelDispatch(message: FlueConversationMessage): {
       instruction?: string;
       message?: string;
       delegatedBy?: string;
+      memberReport?: unknown;
     };
     return {
       text: parsed.instruction ?? parsed.message ?? null,
       delegatedBy: parsed.delegatedBy ?? null,
+      memberReport: parsed.memberReport !== undefined,
     };
   } catch {
-    return { text: raw || null, delegatedBy: null };
+    return { text: raw || null, delegatedBy: null, memberReport: false };
   }
 }
 
@@ -419,7 +425,10 @@ export function ChannelTimeline({
   }, [members, snapshots, channel.id, hasOrchestrator]);
 
   const renderInputRow = (source: RowSource, message: FlueConversationMessage) => {
-    const { text, delegatedBy } = parseChannelDispatch(message);
+    const { text, delegatedBy, memberReport } = parseChannelDispatch(message);
+    // A relayed member report: the member's reply is already rendered from
+    // its own conversation — hide the relay row intentionally.
+    if (memberReport) return null;
     if (text === null) return null;
     const when = formatWhen(messageTimestamp(message) || null);
 
