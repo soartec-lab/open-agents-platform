@@ -39,8 +39,9 @@ conversation). The ONE tool in the whole system is the orchestrator's `delegate_
 - [x] `packages/agent-backend`
 - [x] `packages/agent-frontend`
 - [x] CRM seams stripped (no `/channels/crm`, no internal secret, no CRM presets/workflows)
-- [ ] End-to-end browser verification with a real `ANTHROPIC_API_KEY` (mechanism is
-      Tier-1-verified; the live-LLM walk — 1:1 reply, orchestrator delegation — is pending)
+- [x] End-to-end browser verification with a real `ANTHROPIC_API_KEY` (2026-08-18: the
+      recorded demo walked agent creation → channel with goal → orchestrator delegation →
+      member replies in the merged timeline; see the video in README.md)
 
 Development happens **inside the devcontainer** ("Reopen in Container"). The image carries
 Bun AND real Node 22 — flue requires real Node ≥ 22.19 and refuses to run under Bun
