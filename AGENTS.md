@@ -60,10 +60,15 @@ user posts to a channel (POST /channels/:id/messages, 202 on admission)
   └─ otherwise → dispatch to the orchestrator (instance `channel-<id>`)
         └─ orchestrator answers and/or calls delegate_to_member
               └─ in-process dispatch to the member (instance `<configId>__channel-<id>`)
+                    └─ relay dispatcher (deterministic code, not an agent) read()s the
+                       member's settlement → dispatches a `memberReport` input back to
+                       the orchestrator, capped at MAX_RELAY_COUNT reports per user post
 
 frontend observes every member conversation + (multi-member) the orchestrator's over SSE
 (read-only GET), merges them client-side by agent-authored timestamps → ONE timeline.
-Member replies appear directly; the orchestrator never relays them.
+Member replies appear directly in it; orchestrator-delegated replies are ALSO reported
+back to the orchestrator so a hand-off chain continues without the user (the hidden
+memberReport rows never render — the reply already shows from the member's conversation).
 ```
 
 **Load-bearing invariant: every `/agents/*` conversation is READ-ONLY over HTTP** (GET/HEAD
@@ -83,8 +88,12 @@ packages/agent-backend/src/
       orchestrator/   # THE facilitator: per-channel instance channel-<channelId>;
                       #   prompt templated from instructions.md ({{CHANNEL}}/{{GOAL}}/{{ROSTER}})
     channel-member-instructions.md  # shared paragraph appended to every member's base rules
-  channel-agents.ts   # THE flue seam (the only non-agent @flue/runtime importer):
-                      #   instance-id scheme + dispatchChannelMember/dispatchOrchestrator
+  channel-agents.ts   # flue seam 1 of 2 (with relay-dispatcher.ts, the only non-agent
+                      #   @flue/runtime importers): instance-id scheme +
+                      #   dispatchChannelMember/dispatchOrchestrator
+  relay-dispatcher.ts # flue seam 2 of 2: watches orchestrator-delegated member runs
+                      #   (init().read() on the dispatch receipt) and reports the settled
+                      #   reply back as a memberReport input; owns the relayCount budget
   tools/delegate.ts   # delegate_to_member — the ONE hand-defined tool (orchestrator only),
                       #   a per-render factory over the live member roster
   middlewares/index.ts # whole pipeline; app session is the DEFAULT auth (deny by default;
@@ -157,7 +166,9 @@ utility classes come from `@import "shadcn/tailwind.css"` in app.css.
 - **`useResponseStart(() => ({ timestamp: ... }))` must be spelled verbatim in every
   agent** — the merged timelines sort by this metadata key, flue types don't check it, and
   a typo fails silently (rows sort to the top).
-- **`dispatch()` resolves on admission only** — outcomes are read from the conversations.
+- **`dispatch()` resolves on admission only** — outcomes are read from the conversations,
+  with one sanctioned exception: `src/relay-dispatcher.ts` awaits a delegated member's
+  settlement via `init().read(receipt)` and reports it back to the orchestrator.
   Dispatched failures were observed to SETTLE on 2.0.1 (`outcome: "failed"` with the
   provider error), but keep derived-outcome fallbacks in any run-log UI.
 - **v2 attaches no implicit sandbox**; the never-use-bash lines in agent prompts are
@@ -213,7 +224,11 @@ Or from the host: `docker compose --profile apps up`.
 - N members + orchestrator = N+1 SSE streams per open room; HTTP/1.1 allows 6 per host, so
   channels with more than ~4 members may starve the re-probe. Revisit before large rosters.
 - Members have no tools and cannot talk to each other directly — collaboration flows
-  through the orchestrator's delegation and the shared timeline.
+  through the orchestrator's delegations, the relay dispatcher's reports, and the shared
+  timeline.
+- Relay watchers are in-memory: a backend restart mid-chain drops the automated report
+  (the member's reply still lands; one user message resumes the flow). `read()` is
+  re-attachable, so persisting receipts and re-attaching at boot is a known follow-up.
 
 ## Do NOT
 
@@ -223,9 +238,10 @@ Or from the host: `docker compose --profile apps up`.
   authorization model — writes go through `POST /channels/:id/messages` only.
 - Hand-define more flue tools without a recorded decision (`delegate_to_member` is the
   sole one), and never wire it into a member agent (no agent→agent→agent chains).
-- Import `@flue/runtime` from any non-agent module other than `src/channel-agents.ts`.
-- Convert `channel-agents.ts`'s exports to arrow-function consts — the agent↔seam import
-  cycle is safe only because they are hoisted function declarations referenced inside
+- Import `@flue/runtime` from any non-agent module other than the two seams,
+  `src/channel-agents.ts` and `src/relay-dispatcher.ts`.
+- Convert either seam's exports to arrow-function consts — the agent↔seam↔relay import
+  cycles are safe only because they are hoisted function declarations referenced inside
   function bodies.
 - Skip `composeInstructions` when user-written instruction text enters a prompt.
 - Add an agent anywhere other than one directory under `src/agents/chat/<name>/`

@@ -1,8 +1,35 @@
 # Plan: Orchestrator relay (sequential hand-offs)
 
-Status: **planned** (recorded 2026-08-18, not scheduled). Origin: demo prep — the
-flow everyone expects from a multi-agent channel is *orchestrator → member A →
-A's result carried to member B*, and v1 cannot do it autonomously.
+Status: **implemented** (2026-08-18, same day as recorded). Origin: demo prep —
+the flow everyone expects from a multi-agent channel is *orchestrator → member
+A → A's result carried to member B*, and v1 could not do it autonomously.
+
+## As implemented
+
+The watcher lives in `src/relay-dispatcher.ts` (the second flue seam, next to
+`src/channel-agents.ts`). The open questions below resolved as:
+
+- **Settlement detection**: no polling and no self-HTTP — flue 2.0.1's
+  `dispatch()` returns a `DispatchReceipt {submissionId}`, and
+  `init(agent, {id}).read(receipt, {signal})` awaits that submission's
+  settlement in-process (rejects `AgentRunError` on failed/aborted).
+- **Report text**: truncated to 1500 chars (`MAX_REPORT_CHARS`) before it
+  enters the orchestrator's conversation.
+- **User-dispatched member runs**: not relayed — only
+  `delegatedBy: "orchestrator"` dispatches start a watcher.
+- **Naming**: the loop bound is a plain counter, `relayCount` /
+  `MAX_RELAY_COUNT` (default 3, env-overridable), reset on every user post.
+  `RELAY_TIMEOUT_MS` (default 120s) bounds the wait; on timeout the relay is
+  dropped with a warn log (the member keeps running and its reply still lands).
+- **Failures**: a failed/aborted member run relays as `{member, outcome}` so
+  the orchestrator can tell the user in one line (the timeline never renders
+  settlements, so this is the only surface); it must not retry.
+
+Accepted limitation (follow-up material): watchers are in-memory, so a backend
+restart mid-chain drops the automated report — the member reply still lands
+and one user message resumes the flow. `read()` is re-attachable, so
+persisting `(member instance id, submissionId, channelId, relayCount)` rows
+and re-attaching at boot is a clean later step.
 
 ## Problem
 
