@@ -3,8 +3,8 @@
  * Do not edit manually.
  * open-agents-platform backend REST API
  * Plain-REST surface of the agent backend (`packages/agent-backend`, port
- * 41080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
- * port 41173, cross-origin via CORS).
+ * 42080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
+ * port 42173, cross-origin via CORS).
  *
  * **Out of scope — do not add here:** the flue agent conversation endpoint
  * (`GET /agents/:name/:id`). It uses flue's Durable Streams protocol

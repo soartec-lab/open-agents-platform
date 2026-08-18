@@ -3,8 +3,8 @@
  * Do not edit manually.
  * open-agents-platform backend REST API
  * Plain-REST surface of the agent backend (`packages/agent-backend`, port
- * 41080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
- * port 41173, cross-origin via CORS).
+ * 42080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
+ * port 42173, cross-origin via CORS).
  *
  * **Out of scope — do not add here:** the flue agent conversation endpoint
  * (`GET /agents/:name/:id`). It uses flue's Durable Streams protocol
@@ -77,7 +77,7 @@ export type getChannelsResponseError = getChannelsResponse401 & {
 export type getChannelsResponse = getChannelsResponseSuccess | getChannelsResponseError;
 
 export const getGetChannelsUrl = () => {
-  return `http://localhost:41080/channels`;
+  return `http://localhost:42080/channels`;
 };
 
 /**
@@ -94,7 +94,7 @@ export const getChannels = async (options?: RequestInit): Promise<getChannelsRes
   });
 };
 
-export const getGetChannelsKey = () => [`http://localhost:41080/channels`] as const;
+export const getGetChannelsKey = () => [`http://localhost:42080/channels`] as const;
 
 export type GetChannelsQueryResult = NonNullable<Awaited<ReturnType<typeof getChannels>>>;
 
@@ -146,7 +146,7 @@ export type createChannelResponseError = (createChannelResponse400 | createChann
 export type createChannelResponse = createChannelResponseSuccess | createChannelResponseError;
 
 export const getCreateChannelUrl = () => {
-  return `http://localhost:41080/channels`;
+  return `http://localhost:42080/channels`;
 };
 
 /**
@@ -171,7 +171,7 @@ export const getCreateChannelMutationFetcher = (options?: SecondParameter<typeof
     return createChannel(arg, options);
   };
 };
-export const getCreateChannelMutationKey = () => [`http://localhost:41080/channels`] as const;
+export const getCreateChannelMutationKey = () => [`http://localhost:42080/channels`] as const;
 
 export type CreateChannelMutationResult = NonNullable<Awaited<ReturnType<typeof createChannel>>>;
 
@@ -234,7 +234,7 @@ export type updateChannelResponseError = (
 export type updateChannelResponse = updateChannelResponseSuccess | updateChannelResponseError;
 
 export const getUpdateChannelUrl = (id: string) => {
-  return `http://localhost:41080/channels/${id}`;
+  return `http://localhost:42080/channels/${id}`;
 };
 
 /**
@@ -265,7 +265,7 @@ export const getUpdateChannelMutationFetcher = (
   };
 };
 export const getUpdateChannelMutationKey = (id: string) =>
-  [`http://localhost:41080/channels/${id}`] as const;
+  [`http://localhost:42080/channels/${id}`] as const;
 
 export type UpdateChannelMutationResult = NonNullable<Awaited<ReturnType<typeof updateChannel>>>;
 
@@ -322,7 +322,7 @@ export type deleteChannelResponseError = (deleteChannelResponse401 | deleteChann
 export type deleteChannelResponse = deleteChannelResponseSuccess | deleteChannelResponseError;
 
 export const getDeleteChannelUrl = (id: string) => {
-  return `http://localhost:41080/channels/${id}`;
+  return `http://localhost:42080/channels/${id}`;
 };
 
 /**
@@ -350,7 +350,7 @@ export const getDeleteChannelMutationFetcher = (
   };
 };
 export const getDeleteChannelMutationKey = (id: string) =>
-  [`http://localhost:41080/channels/${id}`] as const;
+  [`http://localhost:42080/channels/${id}`] as const;
 
 export type DeleteChannelMutationResult = NonNullable<Awaited<ReturnType<typeof deleteChannel>>>;
 
@@ -424,7 +424,7 @@ export type createChannelMemberResponse =
   | createChannelMemberResponseError;
 
 export const getCreateChannelMemberUrl = (id: string) => {
-  return `http://localhost:41080/channels/${id}/members`;
+  return `http://localhost:42080/channels/${id}/members`;
 };
 
 /**
@@ -455,7 +455,7 @@ export const getCreateChannelMemberMutationFetcher = (
   };
 };
 export const getCreateChannelMemberMutationKey = (id: string) =>
-  [`http://localhost:41080/channels/${id}/members`] as const;
+  [`http://localhost:42080/channels/${id}/members`] as const;
 
 export type CreateChannelMemberMutationResult = NonNullable<
   Awaited<ReturnType<typeof createChannelMember>>
@@ -525,7 +525,7 @@ export type deleteChannelMemberResponse =
   | deleteChannelMemberResponseError;
 
 export const getDeleteChannelMemberUrl = (id: string, memberId: string) => {
-  return `http://localhost:41080/channels/${id}/members/${memberId}`;
+  return `http://localhost:42080/channels/${id}/members/${memberId}`;
 };
 
 /**
@@ -554,7 +554,7 @@ export const getDeleteChannelMemberMutationFetcher = (
   };
 };
 export const getDeleteChannelMemberMutationKey = (id: string, memberId: string) =>
-  [`http://localhost:41080/channels/${id}/members/${memberId}`] as const;
+  [`http://localhost:42080/channels/${id}/members/${memberId}`] as const;
 
 export type DeleteChannelMemberMutationResult = NonNullable<
   Awaited<ReturnType<typeof deleteChannelMember>>
@@ -631,7 +631,7 @@ export type createChannelMessageResponse =
   | createChannelMessageResponseError;
 
 export const getCreateChannelMessageUrl = (id: string) => {
-  return `http://localhost:41080/channels/${id}/messages`;
+  return `http://localhost:42080/channels/${id}/messages`;
 };
 
 /**
@@ -672,7 +672,7 @@ export const getCreateChannelMessageMutationFetcher = (
   };
 };
 export const getCreateChannelMessageMutationKey = (id: string) =>
-  [`http://localhost:41080/channels/${id}/messages`] as const;
+  [`http://localhost:42080/channels/${id}/messages`] as const;
 
 export type CreateChannelMessageMutationResult = NonNullable<
   Awaited<ReturnType<typeof createChannelMessage>>

@@ -3,8 +3,8 @@
  * Do not edit manually.
  * open-agents-platform backend REST API
  * Plain-REST surface of the agent backend (`packages/agent-backend`, port
- * 41080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
- * port 41173, cross-origin via CORS).
+ * 42080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
+ * port 42173, cross-origin via CORS).
  *
  * **Out of scope — do not add here:** the flue agent conversation endpoint
  * (`GET /agents/:name/:id`). It uses flue's Durable Streams protocol
@@ -48,7 +48,7 @@ export type createSessionResponseError = createSessionResponse400 & {
 export type createSessionResponse = createSessionResponseSuccess | createSessionResponseError;
 
 export const getCreateSessionUrl = () => {
-  return `http://localhost:41080/session`;
+  return `http://localhost:42080/session`;
 };
 
 /**
@@ -77,7 +77,7 @@ export const getCreateSessionMutationFetcher = (options?: SecondParameter<typeof
     return createSession(arg, options);
   };
 };
-export const getCreateSessionMutationKey = () => [`http://localhost:41080/session`] as const;
+export const getCreateSessionMutationKey = () => [`http://localhost:42080/session`] as const;
 
 export type CreateSessionMutationResult = NonNullable<Awaited<ReturnType<typeof createSession>>>;
 

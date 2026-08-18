@@ -1,5 +1,5 @@
 /**
- * Backend HTTP application entrypoint (Hono), served on port 41080.
+ * Backend HTTP application entrypoint (Hono), served on port 42080.
  *
  * This file is the COMPOSITION ROOT and the ROUTE MAP: flue v2 mounts nothing
  * implicitly, so every agent conversation surface is mounted here explicitly

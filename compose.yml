@@ -9,7 +9,7 @@
 #   Once the packages exist, run them with:  docker compose --profile apps up
 #   (or run them inside `workspace` via:     bun --filter '*' dev).
 #
-# Ports: 41080 (agent-backend) / 41173 (agent-frontend). v1 ships no MCP
+# Ports: 42080 (agent-backend) / 42173 (agent-frontend). v1 ships no MCP
 # integration — the two processes are the whole stack.
 services:
   workspace:
@@ -41,7 +41,7 @@ services:
     # env file the stack reads (a repo-root .env is read by nothing). See
     # .env.example.
     ports:
-      - "41080:41080"
+      - "42080:42080"
 
   agent-frontend:
     profiles: ["apps"]
@@ -54,7 +54,7 @@ services:
       - bun-cache:/root/.bun/install/cache
     command: ["bun", "run", "--filter", "*agent-frontend", "dev"]
     ports:
-      - "41173:41173"
+      - "42173:42173"
     depends_on:
       - agent-backend
 

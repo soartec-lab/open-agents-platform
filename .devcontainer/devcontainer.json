@@ -17,13 +17,13 @@
   // (.devcontainer/Dockerfile), so no Node devcontainer feature is needed here.
 
   // Keep in sync with compose.yml.
-  "forwardPorts": [41080, 41173],
+  "forwardPorts": [42080, 42173],
   "portsAttributes": {
-    "41080": {
+    "42080": {
       "label": "agent-backend (flue runtime + channel dispatch + REST)",
       "onAutoForward": "notify"
     },
-    "41173": {
+    "42173": {
       "label": "agent-frontend (React Router channel UI)",
       "onAutoForward": "silent"
     }

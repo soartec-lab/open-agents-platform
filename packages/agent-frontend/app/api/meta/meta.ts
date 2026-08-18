@@ -3,8 +3,8 @@
  * Do not edit manually.
  * open-agents-platform backend REST API
  * Plain-REST surface of the agent backend (`packages/agent-backend`, port
- * 41080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
- * port 41173, cross-origin via CORS).
+ * 42080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
+ * port 42173, cross-origin via CORS).
  *
  * **Out of scope — do not add here:** the flue agent conversation endpoint
  * (`GET /agents/:name/:id`). It uses flue's Durable Streams protocol
@@ -40,7 +40,7 @@ export type getHealthResponseSuccess = getHealthResponse200 & {
 export type getHealthResponse = getHealthResponseSuccess;
 
 export const getGetHealthUrl = () => {
-  return `http://localhost:41080/health`;
+  return `http://localhost:42080/health`;
 };
 
 /**
@@ -55,7 +55,7 @@ export const getHealth = async (options?: RequestInit): Promise<getHealthRespons
   });
 };
 
-export const getGetHealthKey = () => [`http://localhost:41080/health`] as const;
+export const getGetHealthKey = () => [`http://localhost:42080/health`] as const;
 
 export type GetHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getHealth>>>;
 

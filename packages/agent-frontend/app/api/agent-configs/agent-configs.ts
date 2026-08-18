@@ -3,8 +3,8 @@
  * Do not edit manually.
  * open-agents-platform backend REST API
  * Plain-REST surface of the agent backend (`packages/agent-backend`, port
- * 41080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
- * port 41173, cross-origin via CORS).
+ * 42080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
+ * port 42173, cross-origin via CORS).
  *
  * **Out of scope — do not add here:** the flue agent conversation endpoint
  * (`GET /agents/:name/:id`). It uses flue's Durable Streams protocol
@@ -66,7 +66,7 @@ export type getAgentConfigsResponseError = getAgentConfigsResponse401 & {
 export type getAgentConfigsResponse = getAgentConfigsResponseSuccess | getAgentConfigsResponseError;
 
 export const getGetAgentConfigsUrl = () => {
-  return `http://localhost:41080/agent-configs`;
+  return `http://localhost:42080/agent-configs`;
 };
 
 /**
@@ -82,7 +82,7 @@ export const getAgentConfigs = async (options?: RequestInit): Promise<getAgentCo
   });
 };
 
-export const getGetAgentConfigsKey = () => [`http://localhost:41080/agent-configs`] as const;
+export const getGetAgentConfigsKey = () => [`http://localhost:42080/agent-configs`] as const;
 
 export type GetAgentConfigsQueryResult = NonNullable<Awaited<ReturnType<typeof getAgentConfigs>>>;
 
@@ -145,7 +145,7 @@ export type createAgentConfigResponse =
   | createAgentConfigResponseError;
 
 export const getCreateAgentConfigUrl = () => {
-  return `http://localhost:41080/agent-configs`;
+  return `http://localhost:42080/agent-configs`;
 };
 
 /**
@@ -176,7 +176,7 @@ export const getCreateAgentConfigMutationFetcher = (
   };
 };
 export const getCreateAgentConfigMutationKey = () =>
-  [`http://localhost:41080/agent-configs`] as const;
+  [`http://localhost:42080/agent-configs`] as const;
 
 export type CreateAgentConfigMutationResult = NonNullable<
   Awaited<ReturnType<typeof createAgentConfig>>
@@ -251,7 +251,7 @@ export type updateAgentConfigResponse =
   | updateAgentConfigResponseError;
 
 export const getUpdateAgentConfigUrl = (id: string) => {
-  return `http://localhost:41080/agent-configs/${id}`;
+  return `http://localhost:42080/agent-configs/${id}`;
 };
 
 /**
@@ -281,7 +281,7 @@ export const getUpdateAgentConfigMutationFetcher = (
   };
 };
 export const getUpdateAgentConfigMutationKey = (id: string) =>
-  [`http://localhost:41080/agent-configs/${id}`] as const;
+  [`http://localhost:42080/agent-configs/${id}`] as const;
 
 export type UpdateAgentConfigMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateAgentConfig>>
@@ -351,7 +351,7 @@ export type deleteAgentConfigResponse =
   | deleteAgentConfigResponseError;
 
 export const getDeleteAgentConfigUrl = (id: string) => {
-  return `http://localhost:41080/agent-configs/${id}`;
+  return `http://localhost:42080/agent-configs/${id}`;
 };
 
 /**
@@ -380,7 +380,7 @@ export const getDeleteAgentConfigMutationFetcher = (
   };
 };
 export const getDeleteAgentConfigMutationKey = (id: string) =>
-  [`http://localhost:41080/agent-configs/${id}`] as const;
+  [`http://localhost:42080/agent-configs/${id}`] as const;
 
 export type DeleteAgentConfigMutationResult = NonNullable<
   Awaited<ReturnType<typeof deleteAgentConfig>>

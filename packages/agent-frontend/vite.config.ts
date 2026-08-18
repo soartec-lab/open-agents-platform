@@ -7,7 +7,7 @@ import { defineConfig } from "vite";
 // Package root (this config file's directory).
 const pkgRoot = fileURLToPath(new URL(".", import.meta.url));
 
-// Channel frontend dev server on 41173 (React Router framework mode, SPA —
+// Channel frontend dev server on 42173 (React Router framework mode, SPA —
 // see react-router.config.ts).
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter()],
@@ -16,7 +16,7 @@ export default defineConfig({
     alias: { "~": resolve(pkgRoot, "app") },
   },
   server: {
-    port: 41173,
+    port: 42173,
     host: true,
     // The devcontainer's inotify events are unreliable (edits were observed to
     // NOT invalidate Vite's transform cache, serving stale modules until a

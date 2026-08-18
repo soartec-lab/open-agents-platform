@@ -29,7 +29,7 @@ export const APP_SESSION_SECRET = env(
 export const APP_SESSION_TTL_SECONDS = Number(env("APP_SESSION_TTL_SECONDS", "43200"));
 
 /** Browser origin allowed to call the backend with credentials (CORS). */
-export const FRONTEND_ORIGIN = env("FRONTEND_ORIGIN", "http://localhost:41173");
+export const FRONTEND_ORIGIN = env("FRONTEND_ORIGIN", "http://localhost:42173");
 
 /**
  * The model every agent runs on, as `provider/model-id`. flue resolves the

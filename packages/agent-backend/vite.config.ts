@@ -7,7 +7,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [flue()],
   server: {
-    port: 41080,
+    port: 42080,
   },
   ssr: {
     // @prisma/client resolves its query engine and schema relative to the

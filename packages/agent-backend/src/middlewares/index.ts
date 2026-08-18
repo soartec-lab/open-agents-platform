@@ -48,7 +48,7 @@ const middleware = new Hono();
 
 // CORS for the browser app. Credentials enabled so the Authorization header
 // (app-session bearer) is accepted from the frontend origin (cross-origin:
-// frontend :41173 → backend :41080). Registered first so a preflight is
+// frontend :42173 → backend :42080). Registered first so a preflight is
 // answered before any guard runs.
 middleware.use(
   "*",

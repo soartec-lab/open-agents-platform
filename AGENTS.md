@@ -21,8 +21,8 @@ AGENTS.md/docs for the full verified-facts ledger this repo's conventions descen
 
 | package | role | port |
 |---|---|---|
-| `packages/agent-backend` | flue runtime + channel dispatch seam + REST (Hono + Prisma/SQLite) | 41080 |
-| `packages/agent-frontend` | React Router SPA: sidebar + channel rooms + agent management | 41173 |
+| `packages/agent-backend` | flue runtime + channel dispatch seam + REST (Hono + Prisma/SQLite) | 42080 |
+| `packages/agent-frontend` | React Router SPA: sidebar + channel rooms + agent management | 42173 |
 
 **v1 scope decisions (deliberate):** Anthropic Sonnet only (`AGENT_MODEL` env, one model for
 every agent); **no MCP integration** (no tool factory, no dataKey cache, no `/mcp/*` proxy,
@@ -196,7 +196,7 @@ Or from the host: `docker compose --profile apps up`.
   ONLY in the OpenAPI contract — never re-declare them in TypeScript (the response
   validator silently strips undeclared keys; nullable model fields must be mapped to
   ABSENT fields in handlers or the response validator rejects the row).
-- **Contract `servers` entry** (`http://localhost:41080`) must stay — the frontend orval
+- **Contract `servers` entry** (`http://localhost:42080`) must stay — the frontend orval
   config bakes its REST base URL from it. The frontend config also pins
   `override.mutator` to `app/api/fetcher.ts` (hand-written, regen-safe) — REST auth is
   injected there, never passed per call site.

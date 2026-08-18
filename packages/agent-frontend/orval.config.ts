@@ -23,7 +23,7 @@ export default defineConfig({
       // Pin to the shared base tsconfig so generated import extensions stay
       // consistent regardless of per-package allowImportingTsExtensions.
       tsconfig: "../../tsconfig.base.json",
-      // Base URL comes from the spec's `servers` entry (http://localhost:41080)
+      // Base URL comes from the spec's `servers` entry (http://localhost:42080)
       // so the canonical port lives only in the OpenAPI contract.
       baseUrl: { getBaseUrlFromSpecification: true },
       override: {

@@ -1,5 +1,5 @@
 # Root OpenAPI document for the plain-REST surface of the agent backend
-# (:41080). This is the orval generation source (`bun run generate`, per-package
+# (:42080). This is the orval generation source (`bun run generate`, per-package
 # configs) for BOTH sides: packages/agent-backend implements it via the
 # generated Hono routes + request validators (src/routes.ts + hand-owned
 # src/handlers/), and packages/agent-frontend consumes it via the generated
@@ -19,8 +19,8 @@ info:
   version: 0.0.0
   description: |
     Plain-REST surface of the agent backend (`packages/agent-backend`, port
-    41080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
-    port 41173, cross-origin via CORS).
+    42080) as consumed by the agent frontend SPA (`packages/agent-frontend`,
+    port 42173, cross-origin via CORS).
 
     **Out of scope — do not add here:** the flue agent conversation endpoint
     (`GET /agents/:name/:id`). It uses flue's Durable Streams protocol
@@ -31,8 +31,8 @@ info:
     which dispatches in-process.
 
 servers:
-  - url: http://localhost:41080
-    description: Local dev backend (the SPA at http://localhost:41173 calls it cross-origin).
+  - url: http://localhost:42080
+    description: Local dev backend (the SPA at http://localhost:42173 calls it cross-origin).
 
 tags:
   - name: session

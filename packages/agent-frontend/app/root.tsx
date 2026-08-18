@@ -134,7 +134,7 @@ export default function App() {
       <div className="flex h-screen flex-col items-center justify-center gap-2 p-8">
         <p className="text-destructive">Failed to connect to backend: {bootstrapError}</p>
         <p className="text-muted-foreground text-sm">
-          Make sure the backend is running on port 41080.
+          Make sure the backend is running on port 42080.
         </p>
       </div>
     );
