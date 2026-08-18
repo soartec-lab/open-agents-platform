@@ -39,3 +39,17 @@ export const DEFAULT_AGENT_MODEL = env("AGENT_MODEL", "anthropic/claude-sonnet-4
 
 /** Whether an ANTHROPIC_API_KEY is present (live LLM turns possible). */
 export const HAS_ANTHROPIC_KEY = env("ANTHROPIC_API_KEY") !== "";
+
+/**
+ * Max member reports relayed back to a channel's orchestrator per user post.
+ * Bounds the cost of an autonomous hand-off chain: one post can trigger at
+ * most this many orchestrator report-turns (and as many member turns).
+ */
+export const MAX_RELAY_COUNT = Number(env("MAX_RELAY_COUNT", "3"));
+
+/**
+ * How long the relay dispatcher waits for a delegated member run to finish
+ * before giving up on relaying it (the member keeps running; only the
+ * automated report is dropped).
+ */
+export const RELAY_TIMEOUT_MS = Number(env("RELAY_TIMEOUT_MS", "120000"));

@@ -8,14 +8,16 @@
  * conversations read-only over HTTP (SSE) and merges them client-side; this
  * module's in-process dispatch() calls are the ONLY write path into them.
  *
- * This file is the deliberate flue SEAM: the one non-agent module that
- * imports @flue/runtime. dispatch() targets the agent FUNCTION and delivers a
- * `kind: "signal"` message whose body is the pretty-printed JSON input (the
- * timeline UIs parse it back). Both agents' synchronous contexts are primed
- * here before dispatching, because in-process dispatches never pass an HTTP
- * guard that could do the priming (see the v2 timing note in
- * src/agents/chat/custom/agent.ts). dispatch() resolves on admission only —
- * outcomes are read from the conversations.
+ * This file is a deliberate flue SEAM: with src/relay-dispatcher.ts, one of
+ * the two non-agent modules that import @flue/runtime. dispatch() targets the
+ * agent FUNCTION and delivers a `kind: "signal"` message whose body is the
+ * pretty-printed JSON input (the timeline UIs parse it back). Both agents'
+ * synchronous contexts are primed here before dispatching, because in-process
+ * dispatches never pass an HTTP guard that could do the priming (see the v2
+ * timing note in src/agents/chat/custom/agent.ts). dispatch() resolves on
+ * admission only — outcomes are read from the conversations, with ONE
+ * exception: the relay dispatcher read()s orchestrator-delegated member
+ * submissions and reports them back (src/relay-dispatcher.ts).
  *
  * Module-cycle note: this module and the two agent modules import each other
  * (agents need the id helpers / the delegate tool needs the dispatcher).
@@ -34,6 +36,7 @@ import {
 import type { Channel } from "./models/channel.ts";
 import type { ChannelMember } from "./models/channel-member.ts";
 import { CUSTOM_INSTANCE_SEPARATOR } from "./models/custom-instance-id.ts";
+import { maybeStartRelayWatcher, resetRelayCount } from "./relay-dispatcher.ts";
 
 /** The orchestrator's per-channel conversation instance id. */
 export function orchestratorInstanceId(channelId: string): string {
@@ -79,10 +82,15 @@ export async function dispatchChannelMember(
     ...(options.delegatedBy !== undefined && { delegatedBy: options.delegatedBy }),
     firedAt: new Date().toISOString(),
   };
-  await dispatch(Custom, {
+  const receipt = await dispatch(Custom, {
     id,
     message: { kind: "signal", type: "channel", body: JSON.stringify(input, null, 2) },
   });
+  // Orchestrator hand-offs get a relay watcher: the settled reply is reported
+  // back so the orchestrator can take one next step (src/relay-dispatcher.ts).
+  if (options.delegatedBy === "orchestrator") {
+    maybeStartRelayWatcher(member, channel, receipt);
+  }
 }
 
 /**
@@ -99,6 +107,7 @@ export async function dispatchOrchestrator(
   const id = orchestratorInstanceId(channel.id);
   const context: OrchestratorContext = { channel, members };
   primeOrchestratorContext(id, context);
+  resetRelayCount(channel.id);
   const input = {
     trigger: "channel",
     channelId: channel.id,

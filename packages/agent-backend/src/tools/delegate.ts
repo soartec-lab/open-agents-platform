@@ -4,17 +4,20 @@
  * piece of work to one of the channel's member agents through the in-process
  * dispatcher — the same seam POST /channels/:id/messages uses.
  *
- * Wired ONLY into the `orchestrator` agent. Member agents never get it, so
- * no agent→agent→agent chains can form.
+ * Wired ONLY into the `orchestrator` agent. Member agents never get it and
+ * have no tools at all — collaboration chains flow only through the
+ * orchestrator's delegations and the relay dispatcher's reports.
  *
  * Built per render from the orchestrator's primed context: the picklist is
  * the channel's CURRENT member names, so invites and removals reshape the
  * tool on the next message with no registry anywhere.
  *
- * Delegation is fire-and-forget: dispatch() is admission-only, so the tool
- * returns as soon as the run is queued. The member's reply lands in its own
- * per-channel conversation, which the frontend merges into the channel
- * timeline — never relayed through the orchestrator.
+ * Delegation is fire-and-forget for THIS turn: dispatch() is admission-only,
+ * so the tool returns as soon as the run is queued. The member's reply lands
+ * in its own per-channel conversation, which the frontend merges into the
+ * channel timeline — and the relay dispatcher additionally reports it back
+ * to the orchestrator as a `memberReport` input, capped at MAX_RELAY_COUNT
+ * reports per user post (src/relay-dispatcher.ts).
  */
 
 import { defineTool, type ToolDefinition } from "@flue/runtime";
@@ -30,8 +33,9 @@ export function createChannelDelegateTool(context: OrchestratorContext): ToolDef
     name: "delegate_to_member",
     description:
       "Hand a concrete piece of work to one invited member agent of this " +
-      "channel. Fire-and-forget: the member's reply appears directly in the " +
-      "channel timeline by itself — never promise to relay it.",
+      "channel. The member's reply appears directly in the channel timeline " +
+      "by itself, and is also reported back to you as a memberReport input " +
+      "so you can take one next step.",
     input: v.object({
       member: v.pipe(v.picklist(names), v.description("The member agent to hand the work to.")),
       instruction: v.pipe(
@@ -58,7 +62,9 @@ export function createChannelDelegateTool(context: OrchestratorContext): ToolDef
       });
       return {
         output: {
-          summary: `Delegated to ${data.member}. Their reply will appear in the channel timeline.`,
+          summary:
+            `Delegated to ${data.member}. Their reply will appear in the channel ` +
+            "timeline, and will also reach you as a memberReport when they finish.",
         },
       };
     },
