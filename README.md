@@ -6,10 +6,13 @@ team that finishes real work — your own organization of cooperating agents.
 
 ## Demo
 
-Creating an agent, opening a channel with a goal, and watching the
-orchestrator hand work to the right members — research first, then copy:
+Create a Researcher agent, team it up with an existing Writer in a
+goal-driven channel, and post a single request. The orchestrator runs the
+whole pipeline on its own: it delegates the research, receives the findings
+back through the relay dispatcher, hands them to the Writer, and wraps up —
+no human relaying between the steps:
 
-https://github.com/user-attachments/assets/ec974493-ec2a-4424-9665-35eed20868e9
+https://github.com/user-attachments/assets/2517bae3-5173-461b-89ab-d221dfe2d013
 
 ## Features
 
