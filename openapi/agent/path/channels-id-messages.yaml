@@ -1,5 +1,5 @@
 # Path item for POST /channels/{id}/messages
-# (packages/agent-backend/src/handlers/channels/, src/channel-agents.ts).
+# (packages/agent-backend/src/handlers/channels/, src/dispatchers/message-dispatcher.ts).
 # The ONLY write path into any agent conversation — the /agents/* HTTP surface
 # is read-only (GET/HEAD observation).
 parameters:

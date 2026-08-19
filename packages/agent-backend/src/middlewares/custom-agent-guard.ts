@@ -16,7 +16,7 @@
  *
  * There is no session binding and no context priming here (the spike's guard
  * did both): reads render nothing, and priming happens at dispatch time in
- * src/channel-agents.ts. Reads are shared across sessions — the same
+ * src/dispatchers/message-dispatcher.ts. Reads are shared across sessions — the same
  * deferred-ownership stance as the rest of the catalog.
  *
  * A single trailing-`/*` pattern covers the bare conversation path too —

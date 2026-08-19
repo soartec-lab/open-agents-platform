@@ -1,5 +1,5 @@
 # Body of POST /channels/{id}/messages (packages/agent-backend/src/handlers/channels/,
-# src/channel-agents.ts).
+# src/dispatchers/message-dispatcher.ts).
 title: CreateChannelMessageRequest
 type: object
 required: [text]

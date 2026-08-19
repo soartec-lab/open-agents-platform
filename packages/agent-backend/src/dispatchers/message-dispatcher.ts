@@ -1,15 +1,18 @@
 /**
- * Channel agents — how channel messages become agent runs.
+ * Message dispatcher — the outbound courier: how channel messages become
+ * agent runs. One of the platform's two dispatchers (see ./relay-dispatcher.ts
+ * for the return courier): agents never talk to each other directly, every
+ * conversation write goes through one of the two.
  *
  * A channel's agents run in PER-CHANNEL flue conversations: the orchestrator
  * on its own name with instance id `channel-<channelId>`, and each member on
  * the `custom` platform agent with the composite
  * `<configId>__channel-<channelId>`. The channel room observes these
- * conversations read-only over HTTP (SSE) and merges them client-side; this
- * module's in-process dispatch() calls are the ONLY write path into them.
+ * conversations read-only over HTTP (SSE) and merges them client-side; the
+ * dispatchers' in-process dispatch() calls are the ONLY write path into them.
  *
- * This file is a deliberate flue SEAM: with src/relay-dispatcher.ts, one of
- * the two non-agent modules that import @flue/runtime. dispatch() targets the
+ * This directory is the deliberate flue SEAM: the two dispatchers are the
+ * only non-agent modules that import @flue/runtime. dispatch() targets the
  * agent FUNCTION and delivers a `kind: "signal"` message whose body is the
  * pretty-printed JSON input (the timeline UIs parse it back). Both agents'
  * synchronous contexts are primed here before dispatching, because in-process
@@ -17,7 +20,7 @@
  * timing note in src/agents/chat/custom/agent.ts). dispatch() resolves on
  * admission only — outcomes are read from the conversations, with ONE
  * exception: the relay dispatcher read()s orchestrator-delegated member
- * submissions and reports them back (src/relay-dispatcher.ts).
+ * submissions and reports them back (./relay-dispatcher.ts).
  *
  * Module-cycle note: this module and the two agent modules import each other
  * (agents need the id helpers / the delegate tool needs the dispatcher).
@@ -27,15 +30,15 @@
  */
 
 import { dispatch } from "@flue/runtime";
-import { Custom, primeCustomConfig } from "./agents/chat/custom/agent.ts";
+import { Custom, primeCustomConfig } from "../agents/chat/custom/agent.ts";
 import {
   Orchestrator,
   type OrchestratorContext,
   primeOrchestratorContext,
-} from "./agents/chat/orchestrator/agent.ts";
-import type { Channel } from "./models/channel.ts";
-import type { ChannelMember } from "./models/channel-member.ts";
-import { CUSTOM_INSTANCE_SEPARATOR } from "./models/custom-instance-id.ts";
+} from "../agents/chat/orchestrator/agent.ts";
+import type { Channel } from "../models/channel.ts";
+import type { ChannelMember } from "../models/channel-member.ts";
+import { CUSTOM_INSTANCE_SEPARATOR } from "../models/custom-instance-id.ts";
 import { maybeStartRelayWatcher, resetRelayCount } from "./relay-dispatcher.ts";
 
 /** The orchestrator's per-channel conversation instance id. */
@@ -87,7 +90,7 @@ export async function dispatchChannelMember(
     message: { kind: "signal", type: "channel", body: JSON.stringify(input, null, 2) },
   });
   // Orchestrator hand-offs get a relay watcher: the settled reply is reported
-  // back so the orchestrator can take one next step (src/relay-dispatcher.ts).
+  // back so the orchestrator can take one next step (./relay-dispatcher.ts).
   if (options.delegatedBy === "orchestrator") {
     maybeStartRelayWatcher(member, channel, receipt);
   }

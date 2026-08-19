@@ -7,7 +7,7 @@
  * A record is a Discord-like channel: a name, an optional goal, and (via
  * ./channel-member.ts) invited member agents. The catalog is shared across
  * sessions (same deferred-ownership stance as AgentConfig). Callers are the
- * `/channels` handlers and the channel dispatcher (src/channel-agents.ts).
+ * `/channels` handlers and the channel dispatcher (src/dispatchers/message-dispatcher.ts).
  * This module is part of the backend layer AROUND flue and has no flue
  * dependency.
  */

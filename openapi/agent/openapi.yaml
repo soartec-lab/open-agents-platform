@@ -10,7 +10,7 @@
 # handles relative file $refs (orval / swagger-parser / redocly) can bundle it.
 #
 # Source of truth for behavior: packages/agent-backend/src/app.ts (routes),
-# src/models/session.ts (bearer auth), src/channel-agents.ts (message
+# src/models/session.ts (bearer auth), src/dispatchers/message-dispatcher.ts (message
 # dispatch into agent conversations).
 openapi: 3.0.3
 

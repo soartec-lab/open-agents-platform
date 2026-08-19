@@ -17,13 +17,13 @@
  * in its own per-channel conversation, which the frontend merges into the
  * channel timeline — and the relay dispatcher additionally reports it back
  * to the orchestrator as a `memberReport` input, capped at MAX_RELAY_COUNT
- * reports per user post (src/relay-dispatcher.ts).
+ * reports per user post (src/dispatchers/relay-dispatcher.ts).
  */
 
 import { defineTool, type ToolDefinition } from "@flue/runtime";
 import * as v from "valibot";
 import type { OrchestratorContext } from "../agents/chat/orchestrator/agent.ts";
-import { dispatchChannelMember } from "../channel-agents.ts";
+import { dispatchChannelMember } from "../dispatchers/message-dispatcher.ts";
 
 export function createChannelDelegateTool(context: OrchestratorContext): ToolDefinition {
   // The picklist is non-empty by construction: the orchestrator only declares

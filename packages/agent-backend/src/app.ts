@@ -19,7 +19,7 @@
  *   - createAgentRouter  → GET /agents/<name>/:id (+ sub-paths) for every
  *                          agent directory — READ-ONLY over HTTP (the guards
  *                          403 everything but GET/HEAD); writes go through
- *                          POST /channels/:id/messages → src/channel-agents.ts
+ *                          POST /channels/:id/messages → src/dispatchers/message-dispatcher.ts
  *
  * The flue seam: the agent routers and the dispatch seam are the runtime;
  * everything else is the backend layer around it.

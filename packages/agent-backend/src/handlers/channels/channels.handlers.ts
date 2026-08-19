@@ -12,7 +12,10 @@
  * pipeline gates access.
  */
 import { createFactory } from "hono/factory";
-import { dispatchChannelMember, dispatchOrchestrator } from "../../channel-agents.ts";
+import {
+  dispatchChannelMember,
+  dispatchOrchestrator,
+} from "../../dispatchers/message-dispatcher.ts";
 import { AgentConfig } from "../../models/agent-config.ts";
 import { Channel } from "../../models/channel.ts";
 import { ChannelMember } from "../../models/channel-member.ts";

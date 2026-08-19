@@ -88,10 +88,13 @@ packages/agent-backend/src/
       orchestrator/   # THE facilitator: per-channel instance channel-<channelId>;
                       #   prompt templated from instructions.md ({{CHANNEL}}/{{GOAL}}/{{ROSTER}})
     channel-member-instructions.md  # shared paragraph appended to every member's base rules
-  channel-agents.ts   # flue seam 1 of 2 (with relay-dispatcher.ts, the only non-agent
-                      #   @flue/runtime importers): instance-id scheme +
-                      #   dispatchChannelMember/dispatchOrchestrator
-  relay-dispatcher.ts # flue seam 2 of 2: watches orchestrator-delegated member runs
+  dispatchers/        # THE flue seam: its two files are the only non-agent
+                      #   @flue/runtime importers — every conversation write goes
+                      #   through one of these two couriers
+    message-dispatcher.ts  # outbound courier: instance-id scheme +
+                      #   dispatchChannelMember/dispatchOrchestrator (user posts and
+                      #   orchestrator delegations into agent conversations)
+    relay-dispatcher.ts    # return courier: watches orchestrator-delegated member runs
                       #   (init().read() on the dispatch receipt) and reports the settled
                       #   reply back as a memberReport input; owns the relayCount budget
   tools/delegate.ts   # delegate_to_member — the ONE hand-defined tool (orchestrator only),
@@ -115,7 +118,7 @@ directory catalog is the only agent registry; an agent outside `chat/` has no HT
 
 flue agent functions render synchronously when a submission starts, BEFORE the async
 `useAgentStart` seam runs — so both agents use three layers: (1) a module-scope prime map
-written by `channel-agents.ts` immediately before every dispatch, (2) a
+written by the dispatchers immediately before every dispatch, (2) a
 `usePersistentState` backstop for durable-queue replays after restart, (3) a per-delivered-
 message DB re-read in `useAgentStart` (which is also the freshness story: config edits,
 invites/removals, and goal changes apply on the next message).
@@ -167,7 +170,7 @@ utility classes come from `@import "shadcn/tailwind.css"` in app.css.
   agent** — the merged timelines sort by this metadata key, flue types don't check it, and
   a typo fails silently (rows sort to the top).
 - **`dispatch()` resolves on admission only** — outcomes are read from the conversations,
-  with one sanctioned exception: `src/relay-dispatcher.ts` awaits a delegated member's
+  with one sanctioned exception: `src/dispatchers/relay-dispatcher.ts` awaits a delegated member's
   settlement via `init().read(receipt)` and reports it back to the orchestrator.
   Dispatched failures were observed to SETTLE on 2.0.1 (`outcome: "failed"` with the
   provider error), but keep derived-outcome fallbacks in any run-log UI.
@@ -238,11 +241,11 @@ Or from the host: `docker compose --profile apps up`.
   authorization model — writes go through `POST /channels/:id/messages` only.
 - Hand-define more flue tools without a recorded decision (`delegate_to_member` is the
   sole one), and never wire it into a member agent (no agent→agent→agent chains).
-- Import `@flue/runtime` from any non-agent module other than the two seams,
-  `src/channel-agents.ts` and `src/relay-dispatcher.ts`.
-- Convert either seam's exports to arrow-function consts — the agent↔seam↔relay import
-  cycles are safe only because they are hoisted function declarations referenced inside
-  function bodies.
+- Import `@flue/runtime` from any non-agent module other than the two dispatchers in
+  `src/dispatchers/` (message-dispatcher.ts + relay-dispatcher.ts).
+- Convert either dispatcher's exports to arrow-function consts — the agent↔dispatcher
+  import cycles are safe only because they are hoisted function declarations referenced
+  inside function bodies.
 - Skip `composeInstructions` when user-written instruction text enters a prompt.
 - Add an agent anywhere other than one directory under `src/agents/chat/<name>/`
   (agent.ts + instructions.md, directory name === agentName), or reintroduce a hand-written

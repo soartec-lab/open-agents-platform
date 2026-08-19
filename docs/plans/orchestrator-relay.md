@@ -6,8 +6,8 @@ A → A's result carried to member B*, and v1 could not do it autonomously.
 
 ## As implemented
 
-The watcher lives in `src/relay-dispatcher.ts` (the second flue seam, next to
-`src/channel-agents.ts`). The open questions below resolved as:
+The watcher lives in `src/dispatchers/relay-dispatcher.ts` (the second flue seam, next to
+`src/dispatchers/message-dispatcher.ts`). The open questions below resolved as:
 
 - **Settlement detection**: no polling and no self-HTTP — flue 2.0.1's
   `dispatch()` returns a `DispatchReceipt {submissionId}`, and
@@ -45,7 +45,7 @@ channel from parallel fan-out into an actual working chain.
 
 ## Design sketch
 
-Add a **turn-completion watcher** to the dispatch seam (`src/channel-agents.ts`):
+Add a **turn-completion watcher** to the dispatch seam (`src/dispatchers/message-dispatcher.ts`):
 
 1. `dispatchChannelMember(..., { delegatedBy: "orchestrator", hop })` starts a
    watcher after admission.

@@ -6,7 +6,7 @@
  * general). This module is the single source of truth for that format — pure
  * string parsing with no DB, Hono, or flue dependency. Consumers: the
  * conversation guard (src/middlewares/custom-agent-guard.ts), the channel
- * dispatcher (src/channel-agents.ts), and the `custom` agent's context loader
+ * dispatcher (src/dispatchers/message-dispatcher.ts), and the `custom` agent's context loader
  * (src/agents/chat/custom/agent.ts) — the loader must re-parse because flue
  * hands it only the raw `{ id }`, with no channel to forward the guard's
  * result.

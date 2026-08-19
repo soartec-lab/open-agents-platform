@@ -8,7 +8,7 @@
  * `<configId>__channel-<channelId>` — one conversation per (agent, channel)
  * pair. The HTTP surface is READ-ONLY (GET/HEAD observation; the guard in
  * src/middlewares/custom-agent-guard.ts 403s everything else): the only write
- * path is the in-process dispatch from src/channel-agents.ts, fired by
+ * path is the in-process dispatch from src/dispatchers/message-dispatcher.ts, fired by
  * POST /channels/:id/messages or by the orchestrator's delegate tool.
  *
  * v2 timing constraint (why `primeCustomConfig` exists): the agent function

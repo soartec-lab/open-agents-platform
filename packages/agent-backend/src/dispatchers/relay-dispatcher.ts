@@ -3,17 +3,19 @@
  *
  * The third actor of a channel, next to the orchestrator and its members:
  * deterministic backend code, not an AI agent. Whenever the orchestrator
- * hands work to a member (src/channel-agents.ts calls maybeStartRelayWatcher
+ * hands work to a member (./message-dispatcher.ts calls maybeStartRelayWatcher
  * after the delegation is admitted), a watcher awaits that submission's
  * settlement via the flue handle's read() — the one sanctioned exception to
  * "outcomes are read from the conversations over HTTP" — and dispatches the
  * settled reply back to the orchestrator as a `memberReport` input, so a
  * hand-off chain can continue without the user relaying results by hand.
  *
- * This file is the SECOND flue seam (with src/channel-agents.ts): the only
- * two non-agent modules allowed to import @flue/runtime. Same module-cycle
- * rule applies — everything exported here is a hoisted `function` declaration
- * and every cross-module reference happens inside a function body.
+ * The return courier — the second of the platform's two dispatchers (see
+ * ./message-dispatcher.ts for the outbound one): together they are the flue
+ * seam, the only non-agent modules allowed to import @flue/runtime. Same
+ * module-cycle rule applies — everything exported here is a hoisted
+ * `function` declaration and every cross-module reference happens inside a
+ * function body.
  *
  * Cost bound: a report only spawns another watcher while the channel's relay
  * count is below MAX_RELAY_COUNT, so one user post triggers at most that many
@@ -32,16 +34,16 @@
  */
 
 import { AgentRunError, type DispatchReceipt, dispatch, init } from "@flue/runtime";
-import { Custom } from "./agents/chat/custom/agent.ts";
+import { Custom } from "../agents/chat/custom/agent.ts";
 import {
   loadOrchestratorContext,
   Orchestrator,
   primeOrchestratorContext,
-} from "./agents/chat/orchestrator/agent.ts";
-import { memberInstanceId, orchestratorInstanceId } from "./channel-agents.ts";
-import { MAX_RELAY_COUNT, RELAY_TIMEOUT_MS } from "./config.ts";
-import type { Channel } from "./models/channel.ts";
-import type { ChannelMember } from "./models/channel-member.ts";
+} from "../agents/chat/orchestrator/agent.ts";
+import { MAX_RELAY_COUNT, RELAY_TIMEOUT_MS } from "../config.ts";
+import type { Channel } from "../models/channel.ts";
+import type { ChannelMember } from "../models/channel-member.ts";
+import { memberInstanceId, orchestratorInstanceId } from "./message-dispatcher.ts";
 
 /** A settled member run, as the orchestrator's memberReport input carries it. */
 type MemberReport =

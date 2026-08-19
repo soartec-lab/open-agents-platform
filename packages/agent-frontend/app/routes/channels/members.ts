@@ -3,7 +3,7 @@
  * conversation it runs in, the mention slug it goes by, and a stable avatar
  * color — the pieces that make agents read as named teammates.
  *
- * The instance-id scheme mirrors the backend's src/channel-agents.ts: members
+ * The instance-id scheme mirrors the backend's src/dispatchers/message-dispatcher.ts: members
  * run as ("custom", `<configId>__channel-<channelId>`), the orchestrator as
  * ("orchestrator", `channel-<channelId>`). Labels need no roster join —
  * GET /channels embeds each member's name/role.

@@ -12,7 +12,7 @@
  *    as the orchestrator's own "@member <instruction>" hand-off post;
  *    otherwise it is the user's bubble (1:1 channel or @mention).
  *  - an orchestrator-conversation dispatch row: the user's bubble — except a
- *    `memberReport` relay row (src/relay-dispatcher.ts), which is hidden: the
+ *    `memberReport` relay row (src/dispatchers/relay-dispatcher.ts), which is hidden: the
  *    member's reply already renders from its own conversation.
  *  - agent turns: prose in bubbles; the orchestrator's delegate_to_member
  *    tool call renders as a one-line activity note ("asked X to help"), never
@@ -131,12 +131,12 @@ export type RowSource = { kind: "member"; member: ChannelMember } | { kind: "orc
 const rowKeyOf = (source: RowSource, message: FlueConversationMessage) =>
   `${source.kind === "member" ? source.member.id : "orchestrator"}:${message.id}`;
 
-/** The channel dispatch input fields the timeline renders (src/channel-agents.ts). */
+/** The channel dispatch input fields the timeline renders (src/dispatchers/message-dispatcher.ts). */
 export function parseChannelDispatch(message: FlueConversationMessage): {
   /** The user's post (`message`) or the delivered work item (`instruction`). */
   text: string | null;
   delegatedBy: string | null;
-  /** A relayed member report (src/relay-dispatcher.ts) — hidden, never text. */
+  /** A relayed member report (src/dispatchers/relay-dispatcher.ts) — hidden, never text. */
   memberReport: boolean;
 } {
   const raw = message.parts.find((p) => p.type === "text")?.text ?? "";

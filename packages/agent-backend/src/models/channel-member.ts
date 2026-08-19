@@ -4,7 +4,7 @@
  * One invited agent in a channel. Every read joins the member's AgentConfig
  * so callers get the display name, role, and instructions in one shape:
  * the REST layer serializes name/role (the generated response validator
- * strips `instructions`), and the dispatcher (src/channel-agents.ts) and the
+ * strips `instructions`), and the dispatcher (src/dispatchers/message-dispatcher.ts) and the
  * orchestrator's context loader consume name/instructions in-process.
  * Duplicate membership is backed by the DB compound unique
  * (`@@unique([channelId, configId])`), surfaced as the `"already_member"`

@@ -13,7 +13,7 @@
  * `channel-<channelId>`, one conversation per channel. The HTTP surface is
  * READ-ONLY (GET/HEAD observation; src/middlewares/orchestrator-guard.ts
  * 403s everything else): the only write path is the in-process dispatch from
- * src/channel-agents.ts.
+ * src/dispatchers/message-dispatcher.ts.
  *
  * Same three-layer context priming as the custom agent (see
  * ./custom/agent.ts for the v2 timing constraint): the dispatcher primes the
@@ -33,8 +33,8 @@ import {
   useResponseStart,
   useTool,
 } from "@flue/runtime";
-import { channelIdFromInstanceId } from "../../../channel-agents.ts";
 import { DEFAULT_AGENT_MODEL } from "../../../config.ts";
+import { channelIdFromInstanceId } from "../../../dispatchers/message-dispatcher.ts";
 import { Channel } from "../../../models/channel.ts";
 import { ChannelMember } from "../../../models/channel-member.ts";
 import { createChannelDelegateTool } from "../../../tools/delegate.ts";
