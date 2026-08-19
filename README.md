@@ -71,26 +71,33 @@ every agent runs in its own per-channel conversation; the room observes
 them all live and merges them into one timeline by timestamp
 ```
 
-When the orchestrator delegates, a **relay dispatcher** (deterministic
-backend code, not an AI agent) watches the member's run and feeds the result
-back, so a hand-off chain continues without you relaying results by hand:
+Agents never talk to each other directly — every conversation write goes
+through one of two **dispatchers** (deterministic backend code, not AI
+agents): the **message dispatcher** delivers posts and delegations into the
+right agent conversation, and the **relay dispatcher** watches a delegated
+member's run and feeds the result back, so a hand-off chain continues without
+you relaying results by hand:
 
 ```mermaid
 sequenceDiagram
     actor User
+    participant MD as Message dispatcher
     participant O as Orchestrator
     participant RD as Relay dispatcher
     participant A as Member A
     participant B as Member B
 
-    User->>O: post ("research X, then have B summarize")
-    O->>A: delegate_to_member (instruction)
+    User->>MD: post ("research X, then have B summarize")
+    MD->>O: deliver to the orchestrator
+    O->>MD: delegate_to_member (instruction)
+    MD->>A: deliver to Member A
     activate A
     Note over RD: watcher starts,<br/>waits for A to finish
     A-->>User: reply lands in the timeline
     deactivate A
     RD->>O: memberReport { member: A, text }
-    O->>B: delegate_to_member (A's findings folded in)
+    O->>MD: delegate_to_member (A's findings folded in)
+    MD->>B: deliver to Member B
     activate B
     Note over RD: second watcher
     B-->>User: reply lands in the timeline
